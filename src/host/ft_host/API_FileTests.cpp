@@ -159,7 +159,7 @@ void FileTests::TestWriteFileRaw()
 
     VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleMode(hOut, 0), L"Set raw write mode.");
 
-    COORD const coordZero = { 0 };
+    const auto coordZero = { 0 };
     VERIFY_ARE_EQUAL(coordZero, csbiexBefore.dwCursorPosition, L"Cursor should be at 0,0 in fresh buffer.");
 
     DWORD dwWritten = 0;
@@ -170,7 +170,7 @@ void FileTests::TestWriteFileRaw()
     csbiexAfter.cbSize = sizeof(csbiexAfter);
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(hOut, &csbiexAfter), L"Retrieve screen buffer properties after writing.");
 
-    csbiexBefore.dwCursorPosition.X += (SHORT)cchTest;
+    csbiexBefore.dwCursorPosition.x += (SHORT)cchTest;
     VERIFY_ARE_EQUAL(csbiexBefore.dwCursorPosition, csbiexAfter.dwCursorPosition, L"Verify cursor moved expected number of squares for the write length.");
 
     DWORD const cbReadBackBuffer = cchTest + 2; // +1 so we can read back a "space" that should be after what we wrote. +1 more so this can be null terminated for String class comparison.
@@ -204,7 +204,7 @@ void WriteFileHelper(HANDLE hOut,
 }
 
 void ReadBackHelper(HANDLE hOut,
-                    COORD coordReadBackPos,
+                    til::coord coordReadBackPos,
                     DWORD dwReadBackLength,
                     wistd::unique_ptr<char[]>& pszReadBack)
 {
@@ -238,13 +238,13 @@ void FileTests::TestWriteFileProcessed()
 
     VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleMode(hOut, ENABLE_PROCESSED_OUTPUT), L"Set processed write mode.");
 
-    COORD const coordZero = { 0 };
+    const auto coordZero = { 0 };
     VERIFY_ARE_EQUAL(coordZero, csbiexOriginal.dwCursorPosition, L"Cursor should be at 0,0 in fresh buffer.");
 
     // Declare variables needed for each character test.
     CONSOLE_SCREEN_BUFFER_INFOEX csbiexBefore = { 0 };
     CONSOLE_SCREEN_BUFFER_INFOEX csbiexAfter = { 0 };
-    COORD coordExpected = { 0 };
+    til::coord coordExpected;
     PCSTR pszTest;
     DWORD cchTest;
     PCSTR pszReadBackExpected;
@@ -261,7 +261,7 @@ void FileTests::TestWriteFileProcessed()
         // Write z and a bell. Cursor should move once as bell should have made audible noise (can't really test) and not moved or printed anything.
         WriteFileHelper(hOut, csbiexBefore, csbiexAfter, pszTest, cchTest);
         coordExpected = csbiexBefore.dwCursorPosition;
-        coordExpected.X += 1;
+        coordExpected.x += 1;
         VERIFY_ARE_EQUAL(coordExpected, csbiexAfter.dwCursorPosition, L"Verify cursor moved once for printable character and not for bell.");
 
         // Read back written data.
@@ -280,7 +280,7 @@ void FileTests::TestWriteFileProcessed()
         // The backspace character itself is typically non-destructive so it should only affect the cursor, not the buffer contents.
         WriteFileHelper(hOut, csbiexBefore, csbiexAfter, pszTest, cchTest);
         coordExpected = csbiexBefore.dwCursorPosition;
-        coordExpected.X += 1;
+        coordExpected.x += 1;
         VERIFY_ARE_EQUAL(coordExpected, csbiexAfter.dwCursorPosition, L"Verify cursor moved twice forward for printable characters and once backward for backspace.");
 
         // Read back written data.
@@ -300,7 +300,7 @@ void FileTests::TestWriteFileProcessed()
         // Write tab character. Cursor should move out to the next multiple-of-8 and leave space characters in its wake.
         WriteFileHelper(hOut, csbiexBefore, csbiexAfter, pszTest, cchTest);
         coordExpected = csbiexBefore.dwCursorPosition;
-        coordExpected.X = 8;
+        coordExpected.x = 8;
         VERIFY_ARE_EQUAL(coordExpected, csbiexAfter.dwCursorPosition, L"Verify cursor moved forward to position 8 for tab.");
 
         // Read back written data.
@@ -318,14 +318,14 @@ void FileTests::TestWriteFileProcessed()
 
         // Write line feed character. Cursor should move down a line and then the Q from our string should be printed.
         WriteFileHelper(hOut, csbiexBefore, csbiexAfter, pszTest, cchTest);
-        coordExpected.X = 1;
-        coordExpected.Y = 1;
+        coordExpected.x = 1;
+        coordExpected.y = 1;
         VERIFY_ARE_EQUAL(coordExpected, csbiexAfter.dwCursorPosition, L"Verify cursor moved down a line and then one character over for linefeed + Q.");
 
         // Read back written data from the 2nd line.
-        COORD coordRead;
-        coordRead.Y = 1;
-        coordRead.X = 0;
+        til::coord coordRead;
+        coordRead.y = 1;
+        coordRead.x = 0;
         ReadBackHelper(hOut, coordRead, cchReadBack, pszReadBack);
         VERIFY_ARE_EQUAL(String(pszReadBackExpected), String(pszReadBack.get()), L"Verify text matches what we expected to be written into the buffer.");
     }
@@ -341,7 +341,7 @@ void FileTests::TestWriteFileProcessed()
         // Write text and carriage return character. Cursor should end up at the beginning of this line. The J should have been printed in the line before we moved.
         WriteFileHelper(hOut, csbiexBefore, csbiexAfter, pszTest, cchTest);
         coordExpected = csbiexBefore.dwCursorPosition;
-        coordExpected.X = 0;
+        coordExpected.x = 0;
         VERIFY_ARE_EQUAL(coordExpected, csbiexAfter.dwCursorPosition, L"Verify cursor moved to beginning of line for carriage return character.");
 
         // Read back text written from the 2nd line.
@@ -360,7 +360,7 @@ void FileTests::TestWriteFileProcessed()
         // Write text. Cursor should end up on top of the J.
         WriteFileHelper(hOut, csbiexBefore, csbiexAfter, pszTest, cchTest);
         coordExpected = csbiexBefore.dwCursorPosition;
-        coordExpected.X += 1;
+        coordExpected.x += 1;
         VERIFY_ARE_EQUAL(coordExpected, csbiexAfter.dwCursorPosition, L"Verify cursor moved over one for printing character.");
 
         // Read back text written from the 2nd line.
@@ -390,11 +390,11 @@ void FileTests::TestWriteFileWrapEOL()
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleMode(hOut, 0), L"Make sure wrap at EOL is off.");
     }
 
-    COORD const coordZero = { 0 };
+    const auto coordZero = { 0 };
     VERIFY_ARE_EQUAL(coordZero, csbiexOriginal.dwCursorPosition, L"Cursor should be at 0,0 in fresh buffer.");
 
     // Fill first row of the buffer with Z characters until 1 away from the end.
-    for (SHORT i = 0; i < csbiexOriginal.dwSize.X - 1; i++)
+    for (auto i = 0; i < csbiexOriginal.dwSize.x - 1; i++)
     {
         WriteFile(hOut, "Z", 1, nullptr, nullptr);
     }
@@ -403,7 +403,7 @@ void FileTests::TestWriteFileWrapEOL()
     csbiexBefore.cbSize = sizeof(csbiexBefore);
     CONSOLE_SCREEN_BUFFER_INFOEX csbiexAfter = { 0 };
     csbiexAfter.cbSize = sizeof(csbiexAfter);
-    COORD coordExpected = { 0 };
+    til::coord coordExpected;
 
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(hOut, &csbiexBefore), L"Get cursor position information before attempting to wrap at end of line.");
     VERIFY_WIN32_BOOL_SUCCEEDED(WriteFile(hOut, "Y", 1, nullptr, nullptr), L"Write of final character in line succeeded.");
@@ -413,8 +413,8 @@ void FileTests::TestWriteFileWrapEOL()
     {
         Log::Comment(L"Cursor should go down a row if we tried to print at end of line.");
         coordExpected = csbiexBefore.dwCursorPosition;
-        coordExpected.Y++;
-        coordExpected.X = 0;
+        coordExpected.y++;
+        coordExpected.x = 0;
     }
     else
     {
@@ -445,7 +445,7 @@ void FileTests::TestWriteFileVTProcessing()
     WI_SetFlagIf(dwFlags, ENABLE_PROCESSED_OUTPUT, fProcessedOn);
     VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleMode(hOut, dwFlags), L"Turn on relevant flags for test.");
 
-    COORD const coordZero = { 0 };
+    const auto coordZero = { 0 };
     VERIFY_ARE_EQUAL(coordZero, csbiexOriginal.dwCursorPosition, L"Cursor should be at 0,0 in fresh buffer.");
 
     PCSTR pszTestString = "\x1b"
@@ -475,8 +475,8 @@ void FileTests::TestWriteFileVTProcessing()
     }
     else
     {
-        COORD coordExpected = csbiexBefore.dwCursorPosition;
-        coordExpected.X += (SHORT)cchTest;
+        auto coordExpected = csbiexBefore.dwCursorPosition;
+        coordExpected.x += (SHORT)cchTest;
         VERIFY_ARE_EQUAL(coordExpected, csbiexAfter.dwCursorPosition, L"Verify cursor moved as characters should have been emitted, not consumed.");
 
         wistd::unique_ptr<char[]> pszReadBack;
@@ -505,18 +505,18 @@ void FileTests::TestWriteFileDisableNewlineAutoReturn()
     WI_SetFlagIf(dwMode, ENABLE_PROCESSED_OUTPUT, fProcessedOn);
     VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleMode(hOut, dwMode), L"Set console mode for test.");
 
-    COORD const coordZero = { 0 };
+    const auto coordZero = { 0 };
     VERIFY_ARE_EQUAL(coordZero, csbiexOriginal.dwCursorPosition, L"Cursor should be at 0,0 in fresh buffer.");
 
     CONSOLE_SCREEN_BUFFER_INFOEX csbiexBefore = { 0 };
     csbiexBefore.cbSize = sizeof(csbiexBefore);
     CONSOLE_SCREEN_BUFFER_INFOEX csbiexAfter = { 0 };
     csbiexAfter.cbSize = sizeof(csbiexAfter);
-    COORD coordExpected = { 0 };
+    til::coord coordExpected;
 
     WriteFileHelper(hOut, csbiexBefore, csbiexAfter, "abc", 3);
     coordExpected = csbiexBefore.dwCursorPosition;
-    coordExpected.X += 3;
+    coordExpected.x += 3;
     VERIFY_ARE_EQUAL(coordExpected, csbiexAfter.dwCursorPosition, L"Cursor should have moved right to the end of the text written.");
 
     WriteFileHelper(hOut, csbiexBefore, csbiexAfter, "\n", 1);
@@ -526,19 +526,19 @@ void FileTests::TestWriteFileDisableNewlineAutoReturn()
         if (fDisableAutoReturn)
         {
             coordExpected = csbiexBefore.dwCursorPosition;
-            coordExpected.Y += 1;
+            coordExpected.y += 1;
         }
         else
         {
             coordExpected = csbiexBefore.dwCursorPosition;
-            coordExpected.Y += 1;
-            coordExpected.X = 0;
+            coordExpected.y += 1;
+            coordExpected.x = 0;
         }
     }
     else
     {
         coordExpected = csbiexBefore.dwCursorPosition;
-        coordExpected.X += 1;
+        coordExpected.x += 1;
     }
 
     VERIFY_ARE_EQUAL(coordExpected, csbiexAfter.dwCursorPosition, L"Cursor should move to expected position.");
@@ -580,7 +580,7 @@ void FileTests::TestWriteFileSuspended()
     DWORD dwMode = 0;
     VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleMode(hOut, dwMode), L"Set console mode for test.");
 
-    COORD const coordZero = { 0 };
+    const auto coordZero = { 0 };
     VERIFY_ARE_EQUAL(coordZero, csbiexOriginal.dwCursorPosition, L"Cursor should be at 0,0 in fresh buffer.");
 
     VERIFY_WIN32_BOOL_SUCCEEDED(WriteFile(hOut, "abc", 3, nullptr, nullptr), L"Test first write success.");
@@ -776,7 +776,7 @@ void FileTests::TestReadFileLineSync()
 //    csbiexOriginal.cbSize = sizeof(csbiexOriginal);
 //    VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(hOut, &csbiexOriginal), L"Retrieve output screen buffer information.");
 //
-//    COORD const coordZero = { 0 };
+//    const auto coordZero = { 0 };
 //    VERIFY_ARE_EQUAL(coordZero, csbiexOriginal.dwCursorPosition, L"We expect the cursor to be at 0,0 for the start of this test.");
 //
 //    char ch = '\0';
@@ -812,14 +812,14 @@ void FileTests::TestReadFileLineSync()
 //    VERIFY_ARE_EQUAL(String(pszBeforeExpected), String(pszBefore.get()), L"Verify the first few characters of the buffer are empty (spaces)");
 //
 //    PCSTR pszAfterExpected = "qzmp ";
-//    COORD coordCursorAfter = { 0 };
+//    til::coord coordCursorAfter;
 //    DWORD const cchAfterExpected = (DWORD)strlen(pszAfterExpected);
 //
 //    Log::Comment(L"Now write in a few input characters to the buffer.");
 //    for (DWORD i = 0; i < cchAfterExpected - 1; i++)
 //    {
 //        SendFullKeyStrokeHelper(hIn, pszAfterExpected[i]);
-//        coordCursorAfter.X++;
+//        coordCursorAfter.x++;
 //    }
 //
 //    Log::Comment(L"Read back the first line of the buffer to see if we've echoed characters.");

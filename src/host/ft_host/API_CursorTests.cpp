@@ -86,9 +86,9 @@ void CursorTests::TestGetSetConsoleCursorInfo()
 
 void TestSetConsoleCursorPositionImpl(WORD wCursorX, WORD wCursorY, BOOL bExpectedResult)
 {
-    COORD coordCursor;
-    coordCursor.X = wCursorX;
-    coordCursor.Y = wCursorY;
+    til::coord coordCursor;
+    coordCursor.x = wCursorX;
+    coordCursor.y = wCursorY;
 
     // Get initial position data
     CONSOLE_SCREEN_BUFFER_INFOEX sbiInitial = { 0 };
@@ -123,10 +123,10 @@ void TestSetConsoleCursorPositionImpl(WORD wCursorX, WORD wCursorY, BOOL bExpect
     if (bExpectedResult)
     {
         // If the position we set was outside the initial rectangle, then the viewport should have moved.
-        if (coordCursor.X > sbiInitial.srWindow.Right ||
-            coordCursor.X < sbiInitial.srWindow.Left ||
-            coordCursor.Y > sbiInitial.srWindow.Bottom ||
-            coordCursor.Y < sbiInitial.srWindow.Top)
+        if (coordCursor.x > sbiInitial.srWindow.Right ||
+            coordCursor.x < sbiInitial.srWindow.Left ||
+            coordCursor.y > sbiInitial.srWindow.Bottom ||
+            coordCursor.y < sbiInitial.srWindow.Top)
         {
             fViewportMoveExpected = true;
         }
@@ -153,7 +153,7 @@ void CursorTests::TestSetConsoleCursorPosition()
 
     // Try several cases
     TestSetConsoleCursorPositionImpl(0, 0, TRUE); // Top left corner of buffer
-    TestSetConsoleCursorPositionImpl(sbiInitial.dwSize.X - 1, sbiInitial.dwSize.Y - 1, TRUE); // Bottom right corner of buffer
-    TestSetConsoleCursorPositionImpl(sbiInitial.dwSize.X, sbiInitial.dwSize.Y, FALSE); // 1 beyond bottom right corner (the size is 1 larger than the array indices)
+    TestSetConsoleCursorPositionImpl(sbiInitial.dwSize.x - 1, sbiInitial.dwSize.y - 1, TRUE); // Bottom right corner of buffer
+    TestSetConsoleCursorPositionImpl(sbiInitial.dwSize.x, sbiInitial.dwSize.y, FALSE); // 1 beyond bottom right corner (the size is 1 larger than the array indices)
     TestSetConsoleCursorPositionImpl(MAXWORD, MAXWORD, FALSE); // Max values
 }

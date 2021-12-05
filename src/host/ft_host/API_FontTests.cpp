@@ -7,7 +7,7 @@ using namespace WEX::TestExecution;
 using namespace WEX::Common;
 using namespace WEX::Logging;
 
-static const COORD c_coordZero = { 0, 0 };
+static const til::coord c_coordZero;
 
 static const PCWSTR pwszLongFontPath = L"%WINDIR%\\Fonts\\ltype.ttf";
 
@@ -107,7 +107,7 @@ void FontTests::TestGetFontSizeInvalid()
     // Need to make sure that last error is cleared so that we can verify that lasterror was set by GetConsoleFontSize
     SetLastError(0);
 
-    COORD coordFontSize = OneCoreDelay::GetConsoleFontSize((HANDLE)dwConsoleOutput, 0);
+    auto coordFontSize = OneCoreDelay::GetConsoleFontSize((HANDLE)dwConsoleOutput, 0);
     VERIFY_ARE_EQUAL(coordFontSize, c_coordZero, L"Ensure (0,0) coord returned to indicate failure");
     VERIFY_ARE_EQUAL(GetLastError(), (DWORD)ERROR_INVALID_HANDLE, L"Ensure last error was set appropriately");
 }
@@ -115,7 +115,7 @@ void FontTests::TestGetFontSizeInvalid()
 void FontTests::TestGetFontSizeLargeIndexInvalid()
 {
     SetLastError(0);
-    COORD coordFontSize = OneCoreDelay::GetConsoleFontSize(GetStdOutputHandle(), 0xFFFFFFFF);
+    auto coordFontSize = OneCoreDelay::GetConsoleFontSize(GetStdOutputHandle(), 0xFFFFFFFF);
     VERIFY_ARE_EQUAL(coordFontSize, c_coordZero, L"Ensure (0,0) coord returned to indicate failure");
     VERIFY_ARE_EQUAL(GetLastError(), (DWORD)ERROR_INVALID_PARAMETER, L"Ensure last error was set appropriately");
 }
@@ -126,8 +126,8 @@ void FontTests::TestSetConsoleFontNegativeSize()
     CONSOLE_FONT_INFOEX cfie = { 0 };
     cfie.cbSize = sizeof(cfie);
     VERIFY_WIN32_BOOL_SUCCEEDED(OneCoreDelay::GetCurrentConsoleFontEx(hConsoleOutput, FALSE, &cfie));
-    cfie.dwFontSize.X = -4;
-    cfie.dwFontSize.Y = -12;
+    cfie.dwFontSize.x = -4;
+    cfie.dwFontSize.y = -12;
 
     // as strange as it sounds, we don't filter out negative font sizes. under the hood, this call ends up in
     // FindCreateFont, which runs through our list of loaded fonts, fails to find, takes the absolute value of Y, and
@@ -152,7 +152,7 @@ void FontTests::TestFontScenario()
     VERIFY_ARE_NOT_EQUAL(cfi.dwFontSize, c_coordZero, L"Ensure non-zero font size");
     VERIFY_ARE_EQUAL(cfi.dwFontSize, cfie.dwFontSize, L"Ensure regular and Ex APIs return same dwFontSize");
 
-    const COORD coordCurrentFontSize = OneCoreDelay::GetConsoleFontSize(hConsoleOutput, cfi.nFont);
+    const auto coordCurrentFontSize = OneCoreDelay::GetConsoleFontSize(hConsoleOutput, cfi.nFont);
     VERIFY_ARE_EQUAL(coordCurrentFontSize, cfi.dwFontSize, L"Ensure GetConsoleFontSize output matches GetCurrentConsoleFont");
 
     // ---------------------
@@ -160,7 +160,7 @@ void FontTests::TestFontScenario()
     Log::Comment(L"2. Ensure that our font settings round-trip appropriately through the Ex APIs");
     CONSOLE_FONT_INFOEX cfieSet = { 0 };
     cfieSet.cbSize = sizeof(cfieSet);
-    cfieSet.dwFontSize.Y = 12;
+    cfieSet.dwFontSize.y = 12;
     VERIFY_SUCCEEDED(StringCchCopy(cfieSet.FaceName, ARRAYSIZE(cfieSet.FaceName), L"Lucida Console"));
 
     VERIFY_WIN32_BOOL_SUCCEEDED(OneCoreDelay::SetCurrentConsoleFontEx(hConsoleOutput, FALSE, &cfieSet));
@@ -177,7 +177,7 @@ void FontTests::TestFontScenario()
         Log::Result(WEX::Logging::TestResults::Result::Skipped);
         return;
     }
-    VERIFY_ARE_EQUAL(cfieSet.dwFontSize.Y, cfiePost.dwFontSize.Y);
+    VERIFY_ARE_EQUAL(cfieSet.dwFontSize.y, cfiePost.dwFontSize.y);
 
     // Ensure that the entire structure we received matches what we expect to usually get for this Lucida Console Size 12 ask.
     CONSOLE_FONT_INFOEX cfieFullExpected = { 0 };
@@ -187,16 +187,16 @@ void FontTests::TestFontScenario()
     if (!OneCoreDelay::IsIsWindowPresent())
     {
         // On OneCore Windows without GDI, this is what we expect to get.
-        cfieFullExpected.dwFontSize.X = 8;
-        cfieFullExpected.dwFontSize.Y = 12;
+        cfieFullExpected.dwFontSize.x = 8;
+        cfieFullExpected.dwFontSize.y = 12;
         cfieFullExpected.FontFamily = 4;
         cfieFullExpected.FontWeight = 0;
     }
     else
     {
         // On client Windows with GDI, this is what we expect to get.
-        cfieFullExpected.dwFontSize.X = 7;
-        cfieFullExpected.dwFontSize.Y = 12;
+        cfieFullExpected.dwFontSize.x = 7;
+        cfieFullExpected.dwFontSize.y = 12;
         cfieFullExpected.FontFamily = 54;
         cfieFullExpected.FontWeight = 400;
     }
@@ -220,7 +220,7 @@ void FontTests::TestLongFontNameScenario()
     CONSOLE_FONT_INFOEX cfieSetLong = { 0 };
     cfieSetLong.cbSize = sizeof(cfieSetLong);
     cfieSetLong.FontFamily = 54;
-    cfieSetLong.dwFontSize.Y = 12;
+    cfieSetLong.dwFontSize.y = 12;
     VERIFY_SUCCEEDED(StringCchCopy(cfieSetLong.FaceName, ARRAYSIZE(cfieSetLong.FaceName), L"Lucida Sans Typewriter"));
 
     VERIFY_WIN32_BOOL_SUCCEEDED(OneCoreDelay::SetCurrentConsoleFontEx(hConsoleOutput, FALSE, &cfieSetLong));
@@ -253,7 +253,7 @@ void FontTests::TestSetFontAdjustsWindow()
 
     Log::Comment(L"First set the console window to Consolas 16.");
     wcscpy_s(cfiex.FaceName, L"Consolas");
-    cfiex.dwFontSize.Y = 16;
+    cfiex.dwFontSize.y = 16;
 
     VERIFY_WIN32_BOOL_SUCCEEDED(OneCoreDelay::SetCurrentConsoleFontEx(hConsoleOutput, FALSE, &cfiex));
     Sleep(250);
@@ -265,7 +265,7 @@ void FontTests::TestSetFontAdjustsWindow()
 
     Log::Comment(L"Adjust console window to Lucida Console 12.");
     wcscpy_s(cfiex.FaceName, L"Lucida Console");
-    cfiex.dwFontSize.Y = 12;
+    cfiex.dwFontSize.y = 12;
 
     VERIFY_WIN32_BOOL_SUCCEEDED(OneCoreDelay::SetCurrentConsoleFontEx(hConsoleOutput, FALSE, &cfiex));
     Sleep(250);
@@ -281,7 +281,7 @@ void FontTests::TestSetFontAdjustsWindow()
 
     Log::Comment(L"Adjust console window back to Consolas 16.");
     wcscpy_s(cfiex.FaceName, L"Consolas");
-    cfiex.dwFontSize.Y = 16;
+    cfiex.dwFontSize.y = 16;
 
     VERIFY_WIN32_BOOL_SUCCEEDED(OneCoreDelay::SetCurrentConsoleFontEx(hConsoleOutput, FALSE, &cfiex));
     Sleep(250);

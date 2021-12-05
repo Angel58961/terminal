@@ -19,7 +19,7 @@ class FillOutputTests
 
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleOutputCP(50220));
         auto handle = GetStdOutputHandle();
-        const COORD pos{ 0, 0 };
+        const til::coord pos{ 0, 0 };
         DWORD written = 0;
         const char originalCh = 14;
 
@@ -105,7 +105,7 @@ class FillOutputTests
         sbiex.cbSize = sizeof(sbiex);
         VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(hConsole, &sbiex));
 
-        const auto consoleWidth = sbiex.dwSize.X;
+        const auto consoleWidth = sbiex.dwSize.x;
 
         std::wstring input(consoleWidth + 2, L'a');
         std::wstring filled(consoleWidth, L'b');
@@ -180,7 +180,7 @@ class FillOutputTests
 
         // Resize to be smaller by 2
         sbiex.srWindow.Right -= 2;
-        sbiex.dwSize.X -= 2;
+        sbiex.dwSize.x -= 2;
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferInfoEx(hConsole, &sbiex));
 
         // Verify first line is full of 'a's then 'b's

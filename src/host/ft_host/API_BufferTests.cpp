@@ -158,24 +158,24 @@ void BufferTests::ScrollLargeBufferPerformance()
     GetConsoleScreenBufferInfo(Out, &Info);
 
     // We need a large buffer
-    Info.dwSize.Y = 9999;
+    Info.dwSize.y = 9999;
     SetConsoleScreenBufferSize(Out, Info.dwSize);
 
-    SetConsoleCursorPosition(Out, { 0, Info.dwSize.Y - 1 });
+    SetConsoleCursorPosition(Out, { 0, Info.dwSize.y - 1 });
     Log::Comment(L"Working. Please wait...");
 
     const auto count = 20;
 
-    const auto WindowHeight = Info.srWindow.Bottom - Info.srWindow.Top + 1;
+    const auto WindowHeight = Info.srWindow.bottom - Info.srWindow.top + 1;
 
     // Set this to false to scroll the entire buffer. The issue will disappear!
     const auto ScrollOnlyInvisibleArea = true;
 
-    const SMALL_RECT Rect{
+    const til::small_rect Rect{
         0,
         0,
-        Info.dwSize.X - 1,
-        static_cast<short>(Info.dwSize.Y - (ScrollOnlyInvisibleArea ? WindowHeight : 0) - 1)
+        Info.dwSize.x - 1,
+        static_cast<short>(Info.dwSize.y - (ScrollOnlyInvisibleArea ? WindowHeight : 0) - 1)
     };
 
     const CHAR_INFO CharInfo{ '^', Info.wAttributes };
@@ -190,7 +190,7 @@ void BufferTests::ScrollLargeBufferPerformance()
 
     const auto delta = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - now).count();
 
-    SetConsoleCursorPosition(Out, { 0, Info.dwSize.Y - 1 });
+    SetConsoleCursorPosition(Out, { 0, Info.dwSize.y - 1 });
     Log::Comment(String().Format(L"%d calls took %d ms. Avg %d ms per call", count, delta, delta / count));
 }
 
@@ -206,7 +206,7 @@ void BufferTests::ChafaGifPerformance()
     GetConsoleScreenBufferInfo(Out, &Info);
 
     // We need a large buffer
-    Info.dwSize.Y = 9999;
+    Info.dwSize.y = 9999;
     SetConsoleScreenBufferSize(Out, Info.dwSize);
 
     SetConsoleCursorPosition(Out, { 0 });

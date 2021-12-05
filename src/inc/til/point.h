@@ -3,66 +3,55 @@
 
 #pragma once
 
+#include "vec.h"
+
 #ifdef UNIT_TESTING
 class PointTests;
 #endif
 
 namespace til // Terminal Implementation Library. Also: "Today I Learned"
 {
+    using CoordType = int32_t;
+    using coord = til::vec2<CoordType>;
+
+    constexpr coord wrap_coord(const COORD& p) noexcept
+    {
+        return { p.X, p.Y };
+    }
+
+    constexpr COORD unwrap_coord(const coord& p) noexcept
+    {
+        return { gsl::narrow<short>(p.x), gsl::narrow<short>(p.y) };
+    }
+
     class point
     {
     public:
-        constexpr point() noexcept :
-            point(0, 0)
-        {
-        }
-
-        // On 64-bit processors, int and ptrdiff_t are different fundamental types.
-        // On 32-bit processors, they're the same which makes this a double-definition
-        // with the `ptrdiff_t` one below.
-#if defined(_M_AMD64) || defined(_M_ARM64)
-        constexpr point(int x, int y) noexcept :
-            point(static_cast<ptrdiff_t>(x), static_cast<ptrdiff_t>(y))
-        {
-        }
-        constexpr point(ptrdiff_t width, int height) noexcept :
-            point(width, static_cast<ptrdiff_t>(height))
-        {
-        }
-        constexpr point(int width, ptrdiff_t height) noexcept :
-            point(static_cast<ptrdiff_t>(width), height)
-        {
-        }
-#endif
-
-        point(size_t x, size_t y)
-        {
-            THROW_HR_IF(E_ABORT, !base::MakeCheckedNum(x).AssignIfValid(&_x));
-            THROW_HR_IF(E_ABORT, !base::MakeCheckedNum(y).AssignIfValid(&_y));
-        }
-        point(long x, long y)
-        {
-            THROW_HR_IF(E_ABORT, !base::MakeCheckedNum(x).AssignIfValid(&_x));
-            THROW_HR_IF(E_ABORT, !base::MakeCheckedNum(y).AssignIfValid(&_y));
-        }
-
-        constexpr point(ptrdiff_t x, ptrdiff_t y) noexcept :
+        constexpr point() noexcept = default;
+        
+        constexpr point(CoordType x, CoordType y) noexcept :
             _x(x),
             _y(y)
+        {
+        }
+
+        template<typename T>
+        point(const vec2<T>& other) :
+            point(static_cast<CoordType>(other.x), static_cast<CoordType>(other.y))
         {
         }
 
         // This template will convert to size from anything that has an X and a Y field that appear convertible to an integer value
         template<typename TOther>
         constexpr point(const TOther& other, std::enable_if_t<std::is_integral_v<decltype(std::declval<TOther>().X)> && std::is_integral_v<decltype(std::declval<TOther>().Y)>, int> /*sentinel*/ = 0) :
-            point(static_cast<ptrdiff_t>(other.X), static_cast<ptrdiff_t>(other.Y))
+            point(static_cast<CoordType>(other.X), static_cast<CoordType>(other.Y))
         {
         }
 
         // This template will convert to size from anything that has a x and a y field that appear convertible to an integer value
         template<typename TOther>
         constexpr point(const TOther& other, std::enable_if_t<std::is_integral_v<decltype(std::declval<TOther>().x)> && std::is_integral_v<decltype(std::declval<TOther>().y)>, int> /*sentinel*/ = 0) :
-            point(static_cast<ptrdiff_t>(other.x), static_cast<ptrdiff_t>(other.y))
+            point(static_cast<CoordType>(other.x), static_cast<CoordType>(other.y))
         {
         }
 
@@ -71,7 +60,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         // get a compile-time error about "cannot convert from initializer-list to til::point"
         template<typename TilMath, typename TOther>
         constexpr point(TilMath, const TOther& x, const TOther& y, std::enable_if_t<std::is_floating_point_v<TOther>, int> /*sentinel*/ = 0) :
-            point(TilMath::template cast<ptrdiff_t>(x), TilMath::template cast<ptrdiff_t>(y))
+            point(TilMath::template cast<CoordType>(x), TilMath::template cast<CoordType>(y))
         {
         }
 
@@ -80,7 +69,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         // get a compile-time error about "cannot convert from initializer-list to til::point"
         template<typename TilMath, typename TOther>
         constexpr point(TilMath, const TOther& other, std::enable_if_t<std::is_floating_point_v<decltype(std::declval<TOther>().X)> && std::is_floating_point_v<decltype(std::declval<TOther>().Y)>, int> /*sentinel*/ = 0) :
-            point(TilMath::template cast<ptrdiff_t>(other.X), TilMath::template cast<ptrdiff_t>(other.Y))
+            point(TilMath::template cast<CoordType>(other.X), TilMath::template cast<CoordType>(other.Y))
         {
         }
 
@@ -89,7 +78,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         // get a compile-time error about "cannot convert from initializer-list to til::point"
         template<typename TilMath, typename TOther>
         constexpr point(TilMath, const TOther& other, std::enable_if_t<std::is_floating_point_v<decltype(std::declval<TOther>().x)> && std::is_floating_point_v<decltype(std::declval<TOther>().y)>, int> /*sentinel*/ = 0) :
-            point(TilMath::template cast<ptrdiff_t>(other.x), TilMath::template cast<ptrdiff_t>(other.y))
+            point(TilMath::template cast<CoordType>(other.x), TilMath::template cast<CoordType>(other.y))
         {
         }
 
@@ -170,10 +159,10 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
 
         point operator+(const point& other) const
         {
-            ptrdiff_t x;
+            CoordType x;
             THROW_HR_IF(E_ABORT, !base::CheckAdd(_x, other._x).AssignIfValid(&x));
 
-            ptrdiff_t y;
+            CoordType y;
             THROW_HR_IF(E_ABORT, !base::CheckAdd(_y, other._y).AssignIfValid(&y));
 
             return point{ x, y };
@@ -187,10 +176,10 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
 
         point operator-(const point& other) const
         {
-            ptrdiff_t x;
+            CoordType x;
             THROW_HR_IF(E_ABORT, !base::CheckSub(_x, other._x).AssignIfValid(&x));
 
-            ptrdiff_t y;
+            CoordType y;
             THROW_HR_IF(E_ABORT, !base::CheckSub(_y, other._y).AssignIfValid(&y));
 
             return point{ x, y };
@@ -204,10 +193,10 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
 
         point operator*(const point& other) const
         {
-            ptrdiff_t x;
+            CoordType x;
             THROW_HR_IF(E_ABORT, !base::CheckMul(_x, other._x).AssignIfValid(&x));
 
-            ptrdiff_t y;
+            CoordType y;
             THROW_HR_IF(E_ABORT, !base::CheckMul(_y, other._y).AssignIfValid(&y));
 
             return point{ x, y };
@@ -234,10 +223,10 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
 
         point operator/(const point& other) const
         {
-            ptrdiff_t x;
+            CoordType x;
             THROW_HR_IF(E_ABORT, !base::CheckDiv(_x, other._x).AssignIfValid(&x));
 
-            ptrdiff_t y;
+            CoordType y;
             THROW_HR_IF(E_ABORT, !base::CheckDiv(_y, other._y).AssignIfValid(&y));
 
             return point{ x, y };
@@ -253,10 +242,10 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         point operator*(const T& scale) const
         {
             static_assert(std::is_arithmetic<T>::value, "Type must be arithmetic");
-            ptrdiff_t x;
+            CoordType x;
             THROW_HR_IF(E_ABORT, !base::CheckMul(_x, scale).AssignIfValid(&x));
 
-            ptrdiff_t y;
+            CoordType y;
             THROW_HR_IF(E_ABORT, !base::CheckMul(_y, scale).AssignIfValid(&y));
 
             return point{ x, y };
@@ -266,16 +255,16 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         point operator/(const T& scale) const
         {
             static_assert(std::is_arithmetic<T>::value, "Type must be arithmetic");
-            ptrdiff_t x;
+            CoordType x;
             THROW_HR_IF(E_ABORT, !base::CheckDiv(_x, scale).AssignIfValid(&x));
 
-            ptrdiff_t y;
+            CoordType y;
             THROW_HR_IF(E_ABORT, !base::CheckDiv(_y, scale).AssignIfValid(&y));
 
             return point{ x, y };
         }
 
-        constexpr ptrdiff_t x() const noexcept
+        constexpr CoordType x() const noexcept
         {
             return _x;
         }
@@ -288,7 +277,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return ret;
         }
 
-        constexpr ptrdiff_t y() const noexcept
+        constexpr CoordType y() const noexcept
         {
             return _y;
         }
@@ -298,6 +287,16 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         {
             T ret;
             THROW_HR_IF(E_ABORT, !base::MakeCheckedNum(y()).AssignIfValid(&ret));
+            return ret;
+        }
+
+        template<typename T>
+        T to_vec() const
+        {
+            T ret;
+            using I = decltype(ret.x);
+            ret.x = gsl::narrow<I>(_x);
+            ret.y = gsl::narrow<I>(_y);
             return ret;
         }
 
@@ -359,8 +358,8 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         }
 
     protected:
-        ptrdiff_t _x;
-        ptrdiff_t _y;
+        CoordType _x = 0;
+        CoordType _y = 0;
 
 #ifdef UNIT_TESTING
         friend class ::PointTests;

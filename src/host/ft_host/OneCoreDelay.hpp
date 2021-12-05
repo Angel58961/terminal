@@ -84,7 +84,7 @@ namespace OneCoreDelay
             _In_ BOOL bMaximumWindow,
             _In_ PCONSOLE_FONT_INFOEX lpConsoleCurrentFontEx);
 
-    COORD
+    til::coord
     WINAPI
     GetConsoleFontSize(
         _In_ HANDLE hConsoleOutput,

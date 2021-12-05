@@ -120,7 +120,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
     XamlAutomation::ITextRangeProvider InteractivityAutomationPeer::RangeFromPoint(Windows::Foundation::Point screenLocation)
     {
         UIA::ITextRangeProvider* returnVal;
-        THROW_IF_FAILED(_uiaProvider->RangeFromPoint({ screenLocation.X, screenLocation.Y }, &returnVal));
+        THROW_IF_FAILED(_uiaProvider->RangeFromPoint({ screenLocation.x, screenLocation.y }, &returnVal));
         return _CreateXamlUiaTextRange(returnVal);
     }
 
@@ -141,7 +141,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
 #pragma endregion
 
 #pragma region IControlAccessibilityInfo
-    COORD InteractivityAutomationPeer::GetFontSize() const noexcept
+    til::coord InteractivityAutomationPeer::GetFontSize() const noexcept
     {
         return til::size{ til::math::rounding, _interactivity->Core().FontSize() };
     }
@@ -169,9 +169,9 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         return DisplayInformation::GetForCurrentView().RawPixelsPerViewPixel();
     }
 
-    void InteractivityAutomationPeer::ChangeViewport(const SMALL_RECT NewWindow)
+    void InteractivityAutomationPeer::ChangeViewport(const til::small_rect NewWindow)
     {
-        _interactivity->UpdateScrollbar(NewWindow.Top);
+        _interactivity->UpdateScrollbar(NewWindow.top);
     }
 #pragma endregion
 

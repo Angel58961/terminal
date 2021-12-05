@@ -20,7 +20,7 @@ namespace ColorTool
             public short Y;
         }
 
-        public struct SMALL_RECT
+        public struct til::small_rect
         {
             public short Left;
             public short Top;
@@ -45,7 +45,7 @@ namespace ColorTool
             public COORD dwSize;
             public COORD dwCursorPosition;
             public ushort wAttributes;
-            public SMALL_RECT srWindow;
+            public til::small_rect srWindow;
             public COORD dwMaximumWindowSize;
 
             public ushort wPopupAttributes;

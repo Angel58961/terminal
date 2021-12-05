@@ -244,7 +244,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
             // and react accordingly.
             _updateFont(true);
 
-            const COORD windowSize{ static_cast<short>(windowWidth),
+            const til::coord windowSize{ static_cast<short>(windowWidth),
                                     static_cast<short>(windowHeight) };
 
             // First set up the dx engine with the window size in pixels.
@@ -612,7 +612,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
 
         // Initialize our font information.
         const auto fontFace = _settings->FontFace();
-        const short fontHeight = ::base::saturated_cast<short>(_settings->FontSize());
+        const auto fontHeight = ::base::saturated_cast<short>(_settings->FontSize());
         const auto fontWeight = _settings->FontWeight();
         // The font width doesn't terribly matter, we'll only be using the
         //      height to look it up
@@ -752,7 +752,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         }
 
         const auto actualNewSize = _actualFont.GetSize();
-        _FontSizeChangedHandlers(actualNewSize.X, actualNewSize.Y, initialUpdate);
+        _FontSizeChangedHandlers(actualNewSize.x, actualNewSize.y, initialUpdate);
     }
 
     // Method Description:
@@ -764,7 +764,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         try
         {
             // Make sure we have a non-zero font size
-            const auto newSize = std::max<short>(gsl::narrow_cast<short>(fontSize), 1);
+            const auto newSize = std::max<short>(fontSize, 1);
             const auto fontFace = _settings->FontFace();
             const auto fontWeight = _settings->FontWeight();
             _actualFont = { fontFace, 0, fontWeight.Weight, { 0, newSize }, CP_UTF8, false };
@@ -800,7 +800,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
     // - fontSizeDelta: The amount to increase or decrease the font size by.
     void ControlCore::AdjustFontSize(int fontSizeDelta)
     {
-        const auto newSize = _desiredFont.GetEngineSize().Y + fontSizeDelta;
+        const auto newSize = _desiredFont.GetEngineSize().y + fontSizeDelta;
         _setFontSize(newSize);
     }
 
@@ -842,7 +842,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
 
         // Don't actually resize so small that a single character wouldn't fit
         // in either dimension. The buffer really doesn't like being size 0.
-        if (size.cx < _actualFont.GetSize().X || size.cy < _actualFont.GetSize().Y)
+        if (size.cx < _actualFont.GetSize().x || size.cy < _actualFont.GetSize().y)
         {
             return;
         }
@@ -947,8 +947,8 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         // you move its endpoints while it is generating a frame.
         auto lock = _terminal->LockForWriting();
 
-        const short lastVisibleRow = std::max<short>(_terminal->GetViewport().Height() - 1, 0);
-        const short lastVisibleCol = std::max<short>(_terminal->GetViewport().Width() - 1, 0);
+        const auto lastVisibleRow = std::max<short>(_terminal->GetViewport().Height() - 1, 0);
+        const auto lastVisibleCol = std::max<short>(_terminal->GetViewport().Width() - 1, 0);
 
         til::point terminalPosition{
             std::clamp<short>(position.x<short>(), 0, lastVisibleCol),
@@ -1001,7 +1001,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         // content, which is unexpected.
         const auto htmlData = formats == nullptr || WI_IsFlagSet(formats.Value(), CopyFormat::HTML) ?
                                   TextBuffer::GenHTML(bufferData,
-                                                      _actualFont.GetUnscaledSize().Y,
+                                                      _actualFont.GetUnscaledSize().y,
                                                       _actualFont.GetFaceName(),
                                                       til::color{ _settings->DefaultBackground() }) :
                                   "";
@@ -1009,7 +1009,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         // convert to RTF format
         const auto rtfData = formats == nullptr || WI_IsFlagSet(formats.Value(), CopyFormat::RTF) ?
                                  TextBuffer::GenRTF(bufferData,
-                                                    _actualFont.GetUnscaledSize().Y,
+                                                    _actualFont.GetUnscaledSize().y,
                                                     _actualFont.GetFaceName(),
                                                     til::color{ _settings->DefaultBackground() }) :
                                  "";
@@ -1049,8 +1049,8 @@ namespace winrt::Microsoft::Terminal::Control::implementation
     {
         const auto fontSize = _actualFont.GetSize();
         return {
-            ::base::saturated_cast<float>(fontSize.X),
-            ::base::saturated_cast<float>(fontSize.Y)
+            ::base::saturated_cast<float>(fontSize.x),
+            ::base::saturated_cast<float>(fontSize.y)
         };
     }
     winrt::hstring ControlCore::FontFaceName() const noexcept
@@ -1565,7 +1565,7 @@ namespace winrt::Microsoft::Terminal::Control::implementation
         const auto& textBuffer = _terminal->GetTextBuffer();
 
         std::wstringstream ss;
-        const auto lastRow = textBuffer.GetLastNonSpaceCharacter().Y;
+        const auto lastRow = textBuffer.GetLastNonSpaceCharacter().y;
         for (auto rowIndex = 0; rowIndex <= lastRow; rowIndex++)
         {
             const auto& row = textBuffer.GetRowByOffset(rowIndex);

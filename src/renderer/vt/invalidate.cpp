@@ -31,7 +31,7 @@ using namespace Microsoft::Console::Render;
 // - rectangles - Vector of rectangles to draw, line by line
 // Return Value:
 // - S_OK
-[[nodiscard]] HRESULT VtEngine::InvalidateSelection(const std::vector<SMALL_RECT>& /*rectangles*/) noexcept
+[[nodiscard]] HRESULT VtEngine::InvalidateSelection(const std::vector<til::small_rect>& /*rectangles*/) noexcept
 {
     // Selection shouldn't be handled bt the VT Renderer Host, it should be
     //      handled by the client.
@@ -43,10 +43,10 @@ using namespace Microsoft::Console::Render;
 // - Notifies us that the console has changed the character region specified.
 // - NOTE: This typically triggers on cursor or text buffer changes
 // Arguments:
-// - psrRegion - Character region (SMALL_RECT) that has been changed
+// - psrRegion - Character region (til::small_rect) that has been changed
 // Return Value:
 // - S_OK, else an appropriate HRESULT for failing to allocate or write.
-[[nodiscard]] HRESULT VtEngine::Invalidate(const SMALL_RECT* const psrRegion) noexcept
+[[nodiscard]] HRESULT VtEngine::Invalidate(const til::small_rect* const psrRegion) noexcept
 try
 {
     const til::rectangle rect{ Viewport::FromExclusive(*psrRegion).ToInclusive() };
@@ -62,7 +62,7 @@ CATCH_RETURN();
 // - psrRegion - the region covered by the cursor
 // Return Value:
 // - S_OK
-[[nodiscard]] HRESULT VtEngine::InvalidateCursor(const SMALL_RECT* const psrRegion) noexcept
+[[nodiscard]] HRESULT VtEngine::InvalidateCursor(const til::small_rect* const psrRegion) noexcept
 {
     // If we just inherited the cursor, we're going to get an InvalidateCursor
     //      for both where the old cursor was, and where the new cursor is
@@ -70,9 +70,9 @@ CATCH_RETURN();
     // We should ignore the first one, but after that, if the client application
     //      is moving the cursor around in the viewport, move our virtual top
     //      up to meet their changes.
-    if (!_skipCursor && _virtualTop > psrRegion->Top)
+    if (!_skipCursor && _virtualTop > psrRegion->top)
     {
-        _virtualTop = psrRegion->Top;
+        _virtualTop = psrRegion->top;
     }
     _skipCursor = false;
 

@@ -34,47 +34,10 @@ class PointTests
         VERIFY_ARE_EQUAL(8, pt._y);
     }
 
-    TEST_METHOD(UnsignedConstruct)
-    {
-        Log::Comment(L"0.) Normal unsigned construct.");
-        {
-            const size_t x = 5;
-            const size_t y = 10;
-
-            const til::point pt{ x, y };
-            VERIFY_ARE_EQUAL(5, pt._x);
-            VERIFY_ARE_EQUAL(10, pt._y);
-        }
-
-        Log::Comment(L"1.) Unsigned construct overflow on x.");
-        {
-            constexpr size_t x = std::numeric_limits<size_t>().max();
-            const size_t y = 10;
-
-            auto fn = [&]() {
-                til::point pt{ x, y };
-            };
-
-            VERIFY_THROWS_SPECIFIC(fn(), wil::ResultException, [](wil::ResultException& e) { return e.GetErrorCode() == E_ABORT; });
-        }
-
-        Log::Comment(L"2.) Unsigned construct overflow on y.");
-        {
-            constexpr size_t y = std::numeric_limits<size_t>().max();
-            const size_t x = 10;
-
-            auto fn = [&]() {
-                til::point pt{ x, y };
-            };
-
-            VERIFY_THROWS_SPECIFIC(fn(), wil::ResultException, [](wil::ResultException& e) { return e.GetErrorCode() == E_ABORT; });
-        }
-    }
-
     TEST_METHOD(SignedConstruct)
     {
-        const ptrdiff_t x = -5;
-        const ptrdiff_t y = -10;
+        const til::CoordType x = -5;
+        const til::CoordType y = -10;
 
         const til::point pt{ x, y };
         VERIFY_ARE_EQUAL(x, pt._x);
@@ -83,11 +46,11 @@ class PointTests
 
     TEST_METHOD(CoordConstruct)
     {
-        COORD coord{ -5, 10 };
+        til::coord coord{ -5, 10 };
 
         const til::point pt{ coord };
-        VERIFY_ARE_EQUAL(coord.X, pt._x);
-        VERIFY_ARE_EQUAL(coord.Y, pt._y);
+        VERIFY_ARE_EQUAL(coord.x, pt._x);
+        VERIFY_ARE_EQUAL(coord.y, pt._y);
     }
 
     TEST_METHOD(PointConstruct)
@@ -265,8 +228,8 @@ class PointTests
 
         Log::Comment(L"1.) Addition results in value that is too large (x).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ bigSize, static_cast<ptrdiff_t>(0) };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ bigSize, static_cast<til::CoordType>(0) };
             const til::point pt2{ 1, 1 };
 
             auto fn = [&]() {
@@ -278,8 +241,8 @@ class PointTests
 
         Log::Comment(L"2.) Addition results in value that is too large (y).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ static_cast<ptrdiff_t>(0), bigSize };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ static_cast<til::CoordType>(0), bigSize };
             const til::point pt2{ 1, 1 };
 
             auto fn = [&]() {
@@ -307,8 +270,8 @@ class PointTests
 
         Log::Comment(L"1.) Addition results in value that is too large (x).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ bigSize, static_cast<ptrdiff_t>(0) };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ bigSize, static_cast<til::CoordType>(0) };
             const til::point pt2{ 1, 1 };
 
             auto fn = [&]() {
@@ -321,8 +284,8 @@ class PointTests
 
         Log::Comment(L"2.) Addition results in value that is too large (y).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ static_cast<ptrdiff_t>(0), bigSize };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ static_cast<til::CoordType>(0), bigSize };
             const til::point pt2{ 1, 1 };
 
             auto fn = [&]() {
@@ -348,8 +311,8 @@ class PointTests
 
         Log::Comment(L"1.) Subtraction results in value that is too small (x).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ bigSize, static_cast<ptrdiff_t>(0) };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ bigSize, static_cast<til::CoordType>(0) };
             const til::point pt2{ -2, -2 };
 
             auto fn = [&]() {
@@ -361,8 +324,8 @@ class PointTests
 
         Log::Comment(L"2.) Subtraction results in value that is too small (y).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ static_cast<ptrdiff_t>(0), bigSize };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ static_cast<til::CoordType>(0), bigSize };
             const til::point pt2{ -2, -2 };
 
             auto fn = [&]() {
@@ -390,8 +353,8 @@ class PointTests
 
         Log::Comment(L"1.) Subtraction results in value that is too small (x).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ bigSize, static_cast<ptrdiff_t>(0) };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ bigSize, static_cast<til::CoordType>(0) };
             const til::point pt2{ -2, -2 };
 
             auto fn = [&]() {
@@ -404,8 +367,8 @@ class PointTests
 
         Log::Comment(L"2.) Subtraction results in value that is too small (y).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ static_cast<ptrdiff_t>(0), bigSize };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ static_cast<til::CoordType>(0), bigSize };
             const til::point pt2{ -2, -2 };
 
             auto fn = [&]() {
@@ -431,8 +394,8 @@ class PointTests
 
         Log::Comment(L"1.) Multiplication results in value that is too large (x).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ bigSize, static_cast<ptrdiff_t>(0) };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ bigSize, static_cast<til::CoordType>(0) };
             const til::point pt2{ 10, 10 };
 
             auto fn = [&]() {
@@ -444,8 +407,8 @@ class PointTests
 
         Log::Comment(L"2.) Multiplication results in value that is too large (y).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ static_cast<ptrdiff_t>(0), bigSize };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ static_cast<til::CoordType>(0), bigSize };
             const til::point pt2{ 10, 10 };
 
             auto fn = [&]() {
@@ -473,8 +436,8 @@ class PointTests
 
         Log::Comment(L"1.) Multiplication results in value that is too large (x).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ bigSize, static_cast<ptrdiff_t>(0) };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ bigSize, static_cast<til::CoordType>(0) };
             const til::point pt2{ 10, 10 };
 
             auto fn = [&]() {
@@ -487,8 +450,8 @@ class PointTests
 
         Log::Comment(L"2.) Multiplication results in value that is too large (y).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ static_cast<ptrdiff_t>(0), bigSize };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ static_cast<til::CoordType>(0), bigSize };
             const til::point pt2{ 10, 10 };
 
             auto fn = [&]() {
@@ -507,7 +470,7 @@ class PointTests
             const til::point pt{ 5, 10 };
             const float scale = 1.783f;
 
-            const til::point expected{ static_cast<ptrdiff_t>(ceil(5 * scale)), static_cast<ptrdiff_t>(ceil(10 * scale)) };
+            const til::point expected{ static_cast<til::CoordType>(ceil(5 * scale)), static_cast<til::CoordType>(ceil(10 * scale)) };
 
             const auto actual = pt.scale(til::math::ceiling, scale);
 
@@ -541,8 +504,8 @@ class PointTests
 
         Log::Comment(L"1.) Division by zero");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ bigSize, static_cast<ptrdiff_t>(0) };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ bigSize, static_cast<til::CoordType>(0) };
             const til::point pt2{ 1, 1 };
 
             auto fn = [&]() {
@@ -569,8 +532,8 @@ class PointTests
 
         Log::Comment(L"1.) Division by zero");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ bigSize, static_cast<ptrdiff_t>(0) };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ bigSize, static_cast<til::CoordType>(0) };
             const til::point pt2{ 1, 1 };
 
             auto fn = [&]() {
@@ -618,8 +581,8 @@ class PointTests
 
         Log::Comment(L"1.) Overflow on x.");
         {
-            constexpr ptrdiff_t x = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t y = 10;
+            constexpr til::CoordType x = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType y = 10;
             const til::point pt{ x, y };
 
             auto fn = [&]() {
@@ -631,8 +594,8 @@ class PointTests
 
         Log::Comment(L"2.) Overflow on y.");
         {
-            constexpr ptrdiff_t y = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t x = 10;
+            constexpr til::CoordType y = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType x = 10;
             const til::point pt{ x, y };
 
             auto fn = [&]() {
@@ -655,11 +618,11 @@ class PointTests
 
         Log::Comment(L"1.) Fit max x into POINT (may overflow).");
         {
-            constexpr ptrdiff_t x = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t y = 10;
+            constexpr til::CoordType x = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType y = 10;
             const til::point pt{ x, y };
 
-            // On some platforms, ptrdiff_t will fit inside x/y
+            // On some platforms, til::CoordType will fit inside x/y
             const bool overflowExpected = x > std::numeric_limits<decltype(POINT::x)>().max();
 
             if (overflowExpected)
@@ -679,11 +642,11 @@ class PointTests
 
         Log::Comment(L"2.) Fit max y into POINT (may overflow).");
         {
-            constexpr ptrdiff_t y = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t x = 10;
+            constexpr til::CoordType y = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType x = 10;
             const til::point pt{ x, y };
 
-            // On some platforms, ptrdiff_t will fit inside x/y
+            // On some platforms, til::CoordType will fit inside x/y
             const bool overflowExpected = y > std::numeric_limits<decltype(POINT::y)>().max();
 
             if (overflowExpected)
@@ -712,7 +675,7 @@ class PointTests
             VERIFY_ARE_EQUAL(10, val.y);
         }
 
-        // All ptrdiff_ts fit into a float, so there's no exception tests.
+        // All til::CoordTypes fit into a float, so there's no exception tests.
     }
 
     TEST_METHOD(Scaling)
@@ -729,8 +692,8 @@ class PointTests
 
         Log::Comment(L"1.) Multiplication results in value that is too large (x).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ bigSize, static_cast<ptrdiff_t>(0) };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ bigSize, static_cast<til::CoordType>(0) };
             const int scale = 10;
 
             auto fn = [&]() {
@@ -742,8 +705,8 @@ class PointTests
 
         Log::Comment(L"2.) Multiplication results in value that is too large (y).");
         {
-            constexpr ptrdiff_t bigSize = std::numeric_limits<ptrdiff_t>().max();
-            const til::point pt{ static_cast<ptrdiff_t>(0), bigSize };
+            constexpr til::CoordType bigSize = std::numeric_limits<til::CoordType>().max();
+            const til::point pt{ static_cast<til::CoordType>(0), bigSize };
             const int scale = 10;
 
             auto fn = [&]() {

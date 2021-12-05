@@ -6,13 +6,8 @@
 
 using namespace Microsoft::Console::Types;
 
-Viewport::Viewport(const SMALL_RECT sr) noexcept :
+Viewport::Viewport(const til::small_rect sr) noexcept :
     _sr(sr)
-{
-}
-
-Viewport::Viewport(const Viewport& other) noexcept :
-    _sr(other._sr)
 {
 }
 
@@ -23,15 +18,24 @@ Viewport Viewport::Empty() noexcept
 
 Viewport Viewport::FromInclusive(const SMALL_RECT sr) noexcept
 {
-    return Viewport(sr);
+    return FromInclusive(til::wrap_small_rect(sr));
 }
 
 Viewport Viewport::FromExclusive(const SMALL_RECT sr) noexcept
 {
-    SMALL_RECT _sr = sr;
-    _sr.Bottom -= 1;
-    _sr.Right -= 1;
-    return Viewport::FromInclusive(_sr);
+    return FromExclusive(til::wrap_small_rect(sr));
+}
+
+Viewport Viewport::FromInclusive(const til::small_rect sr) noexcept
+{
+    return Viewport(sr);
+}
+
+Viewport Viewport::FromExclusive(til::small_rect sr) noexcept
+{
+    sr.bottom -= 1;
+    sr.right -= 1;
+    return FromInclusive(sr);
 }
 
 // Function Description:
@@ -42,11 +46,11 @@ Viewport Viewport::FromExclusive(const SMALL_RECT sr) noexcept
 // - height: The height of the new viewport
 // Return Value:
 // - a new Viewport at the given origin, with the given dimensions.
-Viewport Viewport::FromDimensions(const COORD origin,
-                                  const short width,
-                                  const short height) noexcept
+Viewport Viewport::FromDimensions(const til::coord origin,
+                                  const til::CoordType width,
+                                  const til::CoordType height) noexcept
 {
-    return Viewport::FromExclusive({ origin.X, origin.Y, origin.X + width, origin.Y + height });
+    return FromExclusive(til::small_rect{ origin.x, origin.y, origin.x + width, origin.y + height });
 }
 
 // Function Description:
@@ -57,10 +61,10 @@ Viewport Viewport::FromDimensions(const COORD origin,
 //      in the x and y coordinates respectively.
 // Return Value:
 // - a new Viewport at the given origin, with the given dimensions.
-Viewport Viewport::FromDimensions(const COORD origin,
-                                  const COORD dimensions) noexcept
+Viewport Viewport::FromDimensions(const til::coord origin,
+                                  const til::coord dimensions) noexcept
 {
-    return Viewport::FromExclusive({ origin.X, origin.Y, origin.X + dimensions.X, origin.Y + dimensions.Y });
+    return FromExclusive(til::small_rect{ origin.x, origin.y, origin.x + dimensions.x, origin.y + dimensions.y });
 }
 
 // Function Description:
@@ -70,9 +74,9 @@ Viewport Viewport::FromDimensions(const COORD origin,
 //      in the x and y coordinates respectively.
 // Return Value:
 // - a new Viewport at the origin, with the given dimensions.
-Viewport Viewport::FromDimensions(const COORD dimensions) noexcept
+Viewport Viewport::FromDimensions(const til::coord dimensions) noexcept
 {
-    return Viewport::FromDimensions({ 0 }, dimensions);
+    return FromDimensions({ 0 }, dimensions);
 }
 
 // Method Description:
@@ -81,47 +85,47 @@ Viewport Viewport::FromDimensions(const COORD dimensions) noexcept
 // - origin: origin of the rectangle to create.
 // Return Value:
 // - a 1x1 Viewport at the given coordinate
-Viewport Viewport::FromCoord(const COORD origin) noexcept
+Viewport Viewport::FromCoord(const til::coord origin) noexcept
 {
-    return Viewport::FromInclusive({ origin.X, origin.Y, origin.X, origin.Y });
+    return FromInclusive(til::small_rect{ origin.x, origin.y, origin.x, origin.y });
 }
 
-SHORT Viewport::Left() const noexcept
+til::CoordType Viewport::Left() const noexcept
 {
-    return _sr.Left;
+    return _sr.left;
 }
 
-SHORT Viewport::RightInclusive() const noexcept
+til::CoordType Viewport::RightInclusive() const noexcept
 {
-    return _sr.Right;
+    return _sr.right;
 }
 
-SHORT Viewport::RightExclusive() const noexcept
+til::CoordType Viewport::RightExclusive() const noexcept
 {
-    return _sr.Right + 1;
+    return _sr.right + 1;
 }
 
-SHORT Viewport::Top() const noexcept
+til::CoordType Viewport::Top() const noexcept
 {
-    return _sr.Top;
+    return _sr.top;
 }
 
-SHORT Viewport::BottomInclusive() const noexcept
+til::CoordType Viewport::BottomInclusive() const noexcept
 {
-    return _sr.Bottom;
+    return _sr.bottom;
 }
 
-SHORT Viewport::BottomExclusive() const noexcept
+til::CoordType Viewport::BottomExclusive() const noexcept
 {
-    return _sr.Bottom + 1;
+    return _sr.bottom + 1;
 }
 
-SHORT Viewport::Height() const noexcept
+til::CoordType Viewport::Height() const noexcept
 {
     return BottomExclusive() - Top();
 }
 
-SHORT Viewport::Width() const noexcept
+til::CoordType Viewport::Width() const noexcept
 {
     return RightExclusive() - Left();
 }
@@ -132,7 +136,7 @@ SHORT Viewport::Width() const noexcept
 // - <none>
 // Return Value:
 // - the coordinates of this viewport's origin.
-COORD Viewport::Origin() const noexcept
+til::coord Viewport::Origin() const noexcept
 {
     return { Left(), Top() };
 }
@@ -143,20 +147,20 @@ COORD Viewport::Origin() const noexcept
 // - <none>
 // Return Value:
 // - the exclusive bottom right coordinates of this viewport.
-COORD Viewport::BottomRightExclusive() const noexcept
+til::coord Viewport::BottomRightExclusive() const noexcept
 {
     return { RightExclusive(), BottomExclusive() };
 }
 
 // Method Description:
-// - For Accessibility, get a COORD representing the end of this viewport in exclusive terms.
+// - For Accessibility, get a til::coord representing the end of this viewport in exclusive terms.
 // - This is needed to represent an exclusive endpoint in UiaTextRange that includes the last
-//    COORD's text in the buffer at (RightInclusive(), BottomInclusive())
+//    til::coord's text in the buffer at (RightInclusive(), BottomInclusive())
 // Arguments:
 // - <none>
 // Return Value:
 // - the coordinates of this viewport's end.
-COORD Viewport::EndExclusive() const noexcept
+til::coord Viewport::EndExclusive() const noexcept
 {
     return { Left(), BottomExclusive() };
 }
@@ -167,7 +171,7 @@ COORD Viewport::EndExclusive() const noexcept
 // - <none>
 // Return Value:
 // - the dimensions of this viewport.
-COORD Viewport::Dimensions() const noexcept
+til::coord Viewport::Dimensions() const noexcept
 {
     return { Width(), Height() };
 }
@@ -190,20 +194,20 @@ bool Viewport::IsInBounds(const Viewport& other) const noexcept
 // - Determines if the given coordinate position lies within this viewport.
 // Arguments:
 // - pos - Coordinate position
-// - allowEndExclusive - if true, allow the EndExclusive COORD as a valid position.
+// - allowEndExclusive - if true, allow the EndExclusive til::coord as a valid position.
 //                        Used in accessibility to signify that the exclusive end
-//                        includes the last COORD in a given viewport.
+//                        includes the last til::coord in a given viewport.
 // Return Value:
 // - True if it lies inside the viewport. False otherwise.
-bool Viewport::IsInBounds(const COORD& pos, bool allowEndExclusive) const noexcept
+bool Viewport::IsInBounds(const til::coord& pos, bool allowEndExclusive) const noexcept
 {
     if (allowEndExclusive && pos == EndExclusive())
     {
         return true;
     }
 
-    return pos.X >= Left() && pos.X < RightExclusive() &&
-           pos.Y >= Top() && pos.Y < BottomExclusive();
+    return pos.x >= Left() && pos.x < RightExclusive() &&
+           pos.y >= Top() && pos.y < BottomExclusive();
 }
 
 // Method Description:
@@ -212,12 +216,12 @@ bool Viewport::IsInBounds(const COORD& pos, bool allowEndExclusive) const noexce
 // - pos - coordinate to update/clamp
 // Return Value:
 // - <none>
-void Viewport::Clamp(COORD& pos) const
+void Viewport::Clamp(til::coord& pos) const
 {
     THROW_HR_IF(E_NOT_VALID_STATE, !IsValid()); // we can't clamp to an invalid viewport.
 
-    pos.X = std::clamp(pos.X, Left(), RightInclusive());
-    pos.Y = std::clamp(pos.Y, Top(), BottomInclusive());
+    pos.x = std::clamp<decltype(pos.x)>(pos.x, Left(), RightInclusive());
+    pos.y = std::clamp<decltype(pos.y)>(pos.y, Top(), BottomInclusive());
 }
 
 // Method Description:
@@ -230,10 +234,10 @@ Viewport Viewport::Clamp(const Viewport& other) const noexcept
 {
     auto clampMe = other.ToInclusive();
 
-    clampMe.Left = std::clamp(clampMe.Left, Left(), RightInclusive());
-    clampMe.Right = std::clamp(clampMe.Right, Left(), RightInclusive());
-    clampMe.Top = std::clamp(clampMe.Top, Top(), BottomInclusive());
-    clampMe.Bottom = std::clamp(clampMe.Bottom, Top(), BottomInclusive());
+    clampMe.left = std::clamp(clampMe.left, Left(), RightInclusive());
+    clampMe.right = std::clamp(clampMe.right, Left(), RightInclusive());
+    clampMe.top = std::clamp(clampMe.top, Top(), BottomInclusive());
+    clampMe.bottom = std::clamp(clampMe.bottom, Top(), BottomInclusive());
 
     return Viewport::FromInclusive(clampMe);
 }
@@ -247,7 +251,7 @@ Viewport Viewport::Clamp(const Viewport& other) const noexcept
 // Return Value:
 // - True if we successfully moved the requested distance. False if we had to stop early.
 // - If False, we will restore the original position to the given coordinate.
-bool Viewport::MoveInBounds(const ptrdiff_t move, COORD& pos) const noexcept
+bool Viewport::MoveInBounds(const ptrdiff_t move, til::coord& pos) const noexcept
 {
     const auto backup = pos;
     bool success = true; // If nothing happens, we're still successful (e.g. add = 0)
@@ -287,12 +291,12 @@ bool Viewport::MoveInBounds(const ptrdiff_t move, COORD& pos) const noexcept
 // - Increments the given coordinate within the bounds of this viewport.
 // Arguments:
 // - pos - Coordinate position that will be incremented, if it can be.
-// - allowEndExclusive - if true, allow the EndExclusive COORD as a valid position.
+// - allowEndExclusive - if true, allow the EndExclusive til::coord as a valid position.
 //                        Used in accessibility to signify that the exclusive end
-//                        includes the last COORD in a given viewport.
+//                        includes the last til::coord in a given viewport.
 // Return Value:
 // - True if it could be incremented. False if it would move outside.
-bool Viewport::IncrementInBounds(COORD& pos, bool allowEndExclusive) const noexcept
+bool Viewport::IncrementInBounds(til::coord& pos, bool allowEndExclusive) const noexcept
 {
     return WalkInBounds(pos, { XWalk::LeftToRight, YWalk::TopToBottom }, allowEndExclusive);
 }
@@ -305,7 +309,7 @@ bool Viewport::IncrementInBounds(COORD& pos, bool allowEndExclusive) const noexc
 // Return Value:
 // - True if it could be incremented inside the viewport.
 // - False if it rolled over from the bottom right corner back to the top.
-bool Viewport::IncrementInBoundsCircular(COORD& pos) const noexcept
+bool Viewport::IncrementInBoundsCircular(til::coord& pos) const noexcept
 {
     return WalkInBoundsCircular(pos, { XWalk::LeftToRight, YWalk::TopToBottom });
 }
@@ -314,12 +318,12 @@ bool Viewport::IncrementInBoundsCircular(COORD& pos) const noexcept
 // - Decrements the given coordinate within the bounds of this viewport.
 // Arguments:
 // - pos - Coordinate position that will be incremented, if it can be.
-// - allowEndExclusive - if true, allow the EndExclusive COORD as a valid position.
+// - allowEndExclusive - if true, allow the EndExclusive til::coord as a valid position.
 //                        Used in accessibility to signify that the exclusive end
-//                        includes the last COORD in a given viewport.
+//                        includes the last til::coord in a given viewport.
 // Return Value:
 // - True if it could be incremented. False if it would move outside.
-bool Viewport::DecrementInBounds(COORD& pos, bool allowEndExclusive) const noexcept
+bool Viewport::DecrementInBounds(til::coord& pos, bool allowEndExclusive) const noexcept
 {
     return WalkInBounds(pos, { XWalk::RightToLeft, YWalk::BottomToTop }, allowEndExclusive);
 }
@@ -332,7 +336,7 @@ bool Viewport::DecrementInBounds(COORD& pos, bool allowEndExclusive) const noexc
 // Return Value:
 // - True if it could be decremented inside the viewport.
 // - False if it rolled over from the top left corner back to the bottom right.
-bool Viewport::DecrementInBoundsCircular(COORD& pos) const noexcept
+bool Viewport::DecrementInBoundsCircular(til::coord& pos) const noexcept
 {
     return WalkInBoundsCircular(pos, { XWalk::RightToLeft, YWalk::BottomToTop });
 }
@@ -342,9 +346,9 @@ bool Viewport::DecrementInBoundsCircular(COORD& pos) const noexcept
 // Arguments:
 // - first- The first coordinate position
 // - second - The second coordinate position
-// - allowEndExclusive - if true, allow the EndExclusive COORD as a valid position.
+// - allowEndExclusive - if true, allow the EndExclusive til::coord as a valid position.
 //                        Used in accessibility to signify that the exclusive end
-//                        includes the last COORD in a given viewport.
+//                        includes the last til::coord in a given viewport.
 // Return Value:
 // -  Negative if First is to the left of the Second.
 // -  0 if First and Second are the same coordinate.
@@ -352,7 +356,7 @@ bool Viewport::DecrementInBoundsCircular(COORD& pos) const noexcept
 // -  This is so you can do s_CompareCoords(first, second) <= 0 for "first is left or the same as second".
 //    (the < looks like a left arrow :D)
 // -  The magnitude of the result is the distance between the two coordinates when typing characters into the buffer (left to right, top to bottom)
-int Viewport::CompareInBounds(const COORD& first, const COORD& second, bool allowEndExclusive) const noexcept
+int Viewport::CompareInBounds(const til::coord& first, const til::coord& second, bool allowEndExclusive) const noexcept
 {
     // Assert that our coordinates are within the expected boundaries
     FAIL_FAST_IF(!IsInBounds(first, allowEndExclusive));
@@ -361,11 +365,11 @@ int Viewport::CompareInBounds(const COORD& first, const COORD& second, bool allo
     // First set the distance vertically
     //   If first is on row 4 and second is on row 6, first will be -2 rows behind second * an 80 character row would be -160.
     //   For the same row, it'll be 0 rows * 80 character width = 0 difference.
-    int retVal = (first.Y - second.Y) * Width();
+    int retVal = (first.y - second.y) * Width();
 
     // Now adjust for horizontal differences
     //   If first is in position 15 and second is in position 30, first is -15 left in relation to 30.
-    retVal += (first.X - second.X);
+    retVal += (first.x - second.x);
 
     // Further notes:
     //   If we already moved behind one row, this will help correct for when first is right of second.
@@ -383,12 +387,12 @@ int Viewport::CompareInBounds(const COORD& first, const COORD& second, bool allo
 // Arguments:
 // - pos - Coordinate position that will be adjusted, if it can be.
 // - dir - Walking direction specifying which direction to go when reaching the end of a row/column
-// - allowEndExclusive - if true, allow the EndExclusive COORD as a valid position.
+// - allowEndExclusive - if true, allow the EndExclusive til::coord as a valid position.
 //                        Used in accessibility to signify that the exclusive end
-//                        includes the last COORD in a given viewport.
+//                        includes the last til::coord in a given viewport.
 // Return Value:
 // - True if it could be adjusted as specified and remain in bounds. False if it would move outside.
-bool Viewport::WalkInBounds(COORD& pos, const WalkDir dir, bool allowEndExclusive) const noexcept
+bool Viewport::WalkInBounds(til::coord& pos, const WalkDir dir, bool allowEndExclusive) const noexcept
 {
     auto copy = pos;
     if (WalkInBoundsCircular(copy, dir, allowEndExclusive))
@@ -409,85 +413,85 @@ bool Viewport::WalkInBounds(COORD& pos, const WalkDir dir, bool allowEndExclusiv
 // Arguments:
 // - pos - Coordinate position that will be adjusted.
 // - dir - Walking direction specifying which direction to go when reaching the end of a row/column
-// - allowEndExclusive - if true, allow the EndExclusive COORD as a valid position.
+// - allowEndExclusive - if true, allow the EndExclusive til::coord as a valid position.
 //                        Used in accessibility to signify that the exclusive end
-//                        includes the last COORD in a given viewport.
+//                        includes the last til::coord in a given viewport.
 // Return Value:
 // - True if it could be adjusted inside the viewport.
 // - False if it rolled over from the final corner back to the initial corner
 //   for the specified walk direction.
-bool Viewport::WalkInBoundsCircular(COORD& pos, const WalkDir dir, bool allowEndExclusive) const noexcept
+bool Viewport::WalkInBoundsCircular(til::coord& pos, const WalkDir dir, bool allowEndExclusive) const noexcept
 {
     // Assert that the position given fits inside this viewport.
     FAIL_FAST_IF(!IsInBounds(pos, allowEndExclusive));
 
     if (dir.x == XWalk::LeftToRight)
     {
-        if (allowEndExclusive && pos.X == Left() && pos.Y == BottomExclusive())
+        if (allowEndExclusive && pos.x == Left() && pos.y == BottomExclusive())
         {
-            pos.Y = Top();
+            pos.y = Top();
             return false;
         }
-        else if (pos.X == RightInclusive())
+        else if (pos.x == RightInclusive())
         {
-            pos.X = Left();
+            pos.x = Left();
 
             if (dir.y == YWalk::TopToBottom)
             {
-                pos.Y++;
-                if (allowEndExclusive && pos.Y == BottomExclusive())
+                pos.y++;
+                if (allowEndExclusive && pos.y == BottomExclusive())
                 {
                     return true;
                 }
-                else if (pos.Y > BottomInclusive())
+                else if (pos.y > BottomInclusive())
                 {
-                    pos.Y = Top();
+                    pos.y = Top();
                     return false;
                 }
             }
             else
             {
-                pos.Y--;
-                if (pos.Y < Top())
+                pos.y--;
+                if (pos.y < Top())
                 {
-                    pos.Y = BottomInclusive();
+                    pos.y = BottomInclusive();
                     return false;
                 }
             }
         }
         else
         {
-            pos.X++;
+            pos.x++;
         }
     }
     else
     {
-        if (pos.X == Left())
+        if (pos.x == Left())
         {
-            pos.X = RightInclusive();
+            pos.x = RightInclusive();
 
             if (dir.y == YWalk::TopToBottom)
             {
-                pos.Y++;
-                if (pos.Y > BottomInclusive())
+                pos.y++;
+                if (pos.y > BottomInclusive())
                 {
-                    pos.Y = Top();
+                    pos.y = Top();
                     return false;
                 }
             }
             else
             {
-                pos.Y--;
-                if (pos.Y < Top())
+                pos.y--;
+                if (pos.y < Top())
                 {
-                    pos.Y = BottomInclusive();
+                    pos.y = BottomInclusive();
                     return false;
                 }
             }
         }
         else
         {
-            pos.X--;
+            pos.x--;
         }
     }
 
@@ -504,11 +508,11 @@ bool Viewport::WalkInBoundsCircular(COORD& pos, const WalkDir dir, bool allowEnd
 // Return Value:
 // - The origin for the walk to reach every position without circling
 //   if using this same viewport with the `WalkInBounds` methods.
-COORD Viewport::GetWalkOrigin(const WalkDir dir) const noexcept
+til::coord Viewport::GetWalkOrigin(const WalkDir dir) const noexcept
 {
-    COORD origin{ 0 };
-    origin.X = dir.x == XWalk::LeftToRight ? Left() : RightInclusive();
-    origin.Y = dir.y == YWalk::TopToBottom ? Top() : BottomInclusive();
+    til::coord origin{ 0 };
+    origin.x = dir.x == XWalk::LeftToRight ? Left() : RightInclusive();
+    origin.y = dir.y == YWalk::TopToBottom ? Top() : BottomInclusive();
     return origin;
 }
 
@@ -668,8 +672,25 @@ Viewport::WalkDir Viewport::DetermineWalkDirection(const Viewport& source, const
     const auto sourceOrigin = source.Origin();
     const auto targetOrigin = target.Origin();
 
-    return Viewport::WalkDir{ targetOrigin.X < sourceOrigin.X ? Viewport::XWalk::LeftToRight : Viewport::XWalk::RightToLeft,
-                              targetOrigin.Y < sourceOrigin.Y ? Viewport::YWalk::TopToBottom : Viewport::YWalk::BottomToTop };
+    return Viewport::WalkDir{ targetOrigin.x < sourceOrigin.x ? Viewport::XWalk::LeftToRight : Viewport::XWalk::RightToLeft,
+                              targetOrigin.y < sourceOrigin.y ? Viewport::YWalk::TopToBottom : Viewport::YWalk::BottomToTop };
+}
+
+// Method Description:
+// - Clips the input rectangle to our bounds. Assumes that the input rectangle
+//is an exclusive rectangle.
+// Arguments:
+// - psr: a pointer to an exclusive rect to clip.
+// Return Value:
+// - true iff the clipped rectangle is valid (with a width and height both >0)
+bool Viewport::TrimToViewport(_Inout_ til::small_rect* const psr) const noexcept
+{
+    psr->left = std::max(psr->left, Left());
+    psr->right = std::min(psr->right, RightExclusive());
+    psr->top = std::max(psr->top, Top());
+    psr->bottom = std::min(psr->bottom, BottomExclusive());
+
+    return psr->left < psr->right && psr->top < psr->bottom;
 }
 
 // Method Description:
@@ -681,12 +702,27 @@ Viewport::WalkDir Viewport::DetermineWalkDirection(const Viewport& source, const
 // - true iff the clipped rectangle is valid (with a width and height both >0)
 bool Viewport::TrimToViewport(_Inout_ SMALL_RECT* const psr) const noexcept
 {
-    psr->Left = std::max(psr->Left, Left());
-    psr->Right = std::min(psr->Right, RightExclusive());
-    psr->Top = std::max(psr->Top, Top());
-    psr->Bottom = std::min(psr->Bottom, BottomExclusive());
+    auto rect = til::wrap_small_rect(*psr);
+    const auto ret = TrimToViewport(&rect);
+    *psr = til::unwrap_small_rect(rect);
+    return ret;
+}
 
-    return psr->Left < psr->Right && psr->Top < psr->Bottom;
+// Method Description:
+// - Translates the input til::small_rect out of our coordinate space, whose origin is
+//      at (this.Left, this.Right)
+// Arguments:
+// - psr: a pointer to a til::small_rect the translate into our coordinate space.
+// Return Value:
+// - <none>
+void Viewport::ConvertToOrigin(_Inout_ til::small_rect* const psr) const noexcept
+{
+    const auto dx = Left();
+    const auto dy = Top();
+    psr->left -= dx;
+    psr->top -= dy;
+    psr->right -= dx;
+    psr->bottom -= dy;
 }
 
 // Method Description:
@@ -698,12 +734,9 @@ bool Viewport::TrimToViewport(_Inout_ SMALL_RECT* const psr) const noexcept
 // - <none>
 void Viewport::ConvertToOrigin(_Inout_ SMALL_RECT* const psr) const noexcept
 {
-    const short dx = Left();
-    const short dy = Top();
-    psr->Left -= dx;
-    psr->Right -= dx;
-    psr->Top -= dy;
-    psr->Bottom -= dy;
+    auto rect = til::wrap_small_rect(*psr);
+    ConvertToOrigin(&rect);
+    *psr = til::unwrap_small_rect(rect);
 }
 
 // Method Description:
@@ -713,10 +746,27 @@ void Viewport::ConvertToOrigin(_Inout_ SMALL_RECT* const psr) const noexcept
 // - pcoord: a pointer to a coordinate the translate into our coordinate space.
 // Return Value:
 // - <none>
-void Viewport::ConvertToOrigin(_Inout_ COORD* const pcoord) const noexcept
+void Viewport::ConvertToOrigin(_Inout_ til::coord* const pcoord) const noexcept
 {
-    pcoord->X -= Left();
-    pcoord->Y -= Top();
+    pcoord->x -= Left();
+    pcoord->y -= Top();
+}
+
+// Method Description:
+// - Translates the input til::small_rect to our coordinate space, whose origin is
+//      at (this.Left, this.Right)
+// Arguments:
+// - psr: a pointer to a til::small_rect the translate into our coordinate space.
+// Return Value:
+// - <none>
+void Viewport::ConvertFromOrigin(_Inout_ til::small_rect* const psr) const noexcept
+{
+    const auto dx = Left();
+    const auto dy = Top();
+    psr->left += dx;
+    psr->top += dy;
+    psr->right += dx;
+    psr->bottom += dy;
 }
 
 // Method Description:
@@ -728,12 +778,9 @@ void Viewport::ConvertToOrigin(_Inout_ COORD* const pcoord) const noexcept
 // - <none>
 void Viewport::ConvertFromOrigin(_Inout_ SMALL_RECT* const psr) const noexcept
 {
-    const short dx = Left();
-    const short dy = Top();
-    psr->Left += dx;
-    psr->Right += dx;
-    psr->Top += dy;
-    psr->Bottom += dy;
+    auto rect = til::wrap_small_rect(*psr);
+    ConvertFromOrigin(&rect);
+    *psr = til::unwrap_small_rect(rect);
 }
 
 // Method Description:
@@ -743,10 +790,10 @@ void Viewport::ConvertFromOrigin(_Inout_ SMALL_RECT* const psr) const noexcept
 // - pcoord: a pointer to a coordinate the translate into our coordinate space.
 // Return Value:
 // - <none>
-void Viewport::ConvertFromOrigin(_Inout_ COORD* const pcoord) const noexcept
+void Viewport::ConvertFromOrigin(_Inout_ til::coord* const pcoord) const noexcept
 {
-    pcoord->X += Left();
-    pcoord->Y += Top();
+    pcoord->x += Left();
+    pcoord->y += Top();
 }
 
 // Method Description:
@@ -755,7 +802,7 @@ void Viewport::ConvertFromOrigin(_Inout_ COORD* const pcoord) const noexcept
 // - <none>
 // Return Value:
 // - an exclusive SMALL_RECT equivalent to this viewport.
-SMALL_RECT Viewport::ToExclusive() const noexcept
+til::small_rect Viewport::ToExclusive() const noexcept
 {
     return { Left(), Top(), RightExclusive(), BottomExclusive() };
 }
@@ -782,7 +829,7 @@ RECT Viewport::ToRect() const noexcept
 // - <none>
 // Return Value:
 // - an inclusive SMALL_RECT equivalent to this viewport.
-SMALL_RECT Viewport::ToInclusive() const noexcept
+til::small_rect Viewport::ToInclusive() const noexcept
 {
     return { Left(), Top(), RightInclusive(), BottomInclusive() };
 }
@@ -846,24 +893,12 @@ Viewport Viewport::ToOrigin() const noexcept
 // Return Value:
 // - The offset viewport by the given delta.
 // - NOTE: Throws on safe math failure.
-[[nodiscard]] Viewport Viewport::Offset(const Viewport& original, const COORD delta)
+[[nodiscard]] Viewport Viewport::Offset(const Viewport& original, const til::coord delta)
 {
-    // If there's no delta, do nothing.
-    if (delta.X == 0 && delta.Y == 0)
-    {
-        return original;
-    }
-
-    SHORT newTop = original._sr.Top;
-    SHORT newLeft = original._sr.Left;
-    SHORT newRight = original._sr.Right;
-    SHORT newBottom = original._sr.Bottom;
-
-    THROW_IF_FAILED(ShortAdd(newLeft, delta.X, &newLeft));
-    THROW_IF_FAILED(ShortAdd(newRight, delta.X, &newRight));
-    THROW_IF_FAILED(ShortAdd(newTop, delta.Y, &newTop));
-    THROW_IF_FAILED(ShortAdd(newBottom, delta.Y, &newBottom));
-
+    const auto newLeft = original._sr.left + delta.x;
+    const auto newTop = original._sr.top + delta.y;
+    const auto newRight = original._sr.right + delta.x;
+    const auto newBottom = original._sr.bottom + delta.y;
     return Viewport({ newLeft, newTop, newRight, newBottom });
 }
 
@@ -1053,10 +1088,10 @@ try
         // We generate these rectangles by the original and intersection points, but some of them might be empty when the intersection
         // lines up with the edge of the original. That's OK. That just means that the subtraction didn't leave anything behind.
         // We will filter those out below when adding them to the result.
-        const auto top = Viewport({ original.Left(), original.Top(), original.RightInclusive(), intersection.Top() - 1 });
-        const auto bottom = Viewport({ original.Left(), intersection.BottomExclusive(), original.RightInclusive(), original.BottomInclusive() });
-        const auto left = Viewport({ original.Left(), intersection.Top(), intersection.Left() - 1, intersection.BottomInclusive() });
-        const auto right = Viewport({ intersection.RightExclusive(), intersection.Top(), original.RightInclusive(), intersection.BottomInclusive() });
+        const Viewport top(til::small_rect{ original.Left(), original.Top(), original.RightInclusive(), intersection.Top() - 1 });
+        const Viewport bottom(til::small_rect{ original.Left(), intersection.BottomExclusive(), original.RightInclusive(), original.BottomInclusive() });
+        const Viewport left(til::small_rect{ original.Left(), intersection.Top(), intersection.Left() - 1, intersection.BottomInclusive() });
+        const Viewport right(til::small_rect{ intersection.RightExclusive(), intersection.Top(), original.RightInclusive(), intersection.BottomInclusive() });
 
         if (top.IsValid())
         {

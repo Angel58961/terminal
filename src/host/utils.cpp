@@ -11,14 +11,14 @@
 
 using Microsoft::Console::Interactivity::ServiceLocator;
 
-short CalcWindowSizeX(const SMALL_RECT& rect) noexcept
+til::CoordType CalcWindowSizeX(const til::small_rect& rect) noexcept
 {
-    return rect.Right - rect.Left + 1;
+    return rect.right - rect.left + 1;
 }
 
-short CalcWindowSizeY(const SMALL_RECT& rect) noexcept
+til::CoordType CalcWindowSizeY(const til::small_rect& rect) noexcept
 {
-    return rect.Bottom - rect.Top + 1;
+    return rect.bottom - rect.top + 1;
 }
 
 short CalcCursorYOffsetInPixels(const short sFontSizeY, const ULONG ulSize) noexcept
@@ -167,25 +167,25 @@ UINT s_LoadStringEx(_In_ HINSTANCE hModule, _In_ UINT wID, _Out_writes_(cchBuffe
 // -  This is so you can do s_CompareCoords(first, second) <= 0 for "first is left or the same as second".
 //    (the < looks like a left arrow :D)
 // -  The magnitude of the result is the distance between the two coordinates when typing characters into the buffer (left to right, top to bottom)
-int Utils::s_CompareCoords(const COORD bufferSize, const COORD coordFirst, const COORD coordSecond) noexcept
+int Utils::s_CompareCoords(const til::coord bufferSize, const til::coord coordFirst, const til::coord coordSecond) noexcept
 {
-    const short cRowWidth = bufferSize.X;
+    const auto cRowWidth = bufferSize.x;
 
     // Assert that our coordinates are within the expected boundaries
-    const short cRowHeight = bufferSize.Y;
-    FAIL_FAST_IF(!(coordFirst.X >= 0 && coordFirst.X < cRowWidth));
-    FAIL_FAST_IF(!(coordSecond.X >= 0 && coordSecond.X < cRowWidth));
-    FAIL_FAST_IF(!(coordFirst.Y >= 0 && coordFirst.Y < cRowHeight));
-    FAIL_FAST_IF(!(coordSecond.Y >= 0 && coordSecond.Y < cRowHeight));
+    const auto cRowHeight = bufferSize.y;
+    FAIL_FAST_IF(!(coordFirst.x >= 0 && coordFirst.x < cRowWidth));
+    FAIL_FAST_IF(!(coordSecond.x >= 0 && coordSecond.x < cRowWidth));
+    FAIL_FAST_IF(!(coordFirst.y >= 0 && coordFirst.y < cRowHeight));
+    FAIL_FAST_IF(!(coordSecond.y >= 0 && coordSecond.y < cRowHeight));
 
     // First set the distance vertically
     //   If first is on row 4 and second is on row 6, first will be -2 rows behind second * an 80 character row would be -160.
     //   For the same row, it'll be 0 rows * 80 character width = 0 difference.
-    int retVal = (coordFirst.Y - coordSecond.Y) * cRowWidth;
+    int retVal = (coordFirst.y - coordSecond.y) * cRowWidth;
 
     // Now adjust for horizontal differences
     //   If first is in position 15 and second is in position 30, first is -15 left in relation to 30.
-    retVal += (coordFirst.X - coordSecond.X);
+    retVal += (coordFirst.x - coordSecond.x);
 
     // Further notes:
     //   If we already moved behind one row, this will help correct for when first is right of second.
@@ -209,11 +209,11 @@ int Utils::s_CompareCoords(const COORD bufferSize, const COORD coordFirst, const
 // -  This is so you can do s_CompareCoords(first, second) <= 0 for "first is left or the same as second".
 //    (the < looks like a left arrow :D)
 // -  The magnitude of the result is the distance between the two coordinates when typing characters into the buffer (left to right, top to bottom)
-int Utils::s_CompareCoords(const COORD coordFirst, const COORD coordSecond) noexcept
+int Utils::s_CompareCoords(const til::coord coordFirst, const til::coord coordSecond) noexcept
 {
     const CONSOLE_INFORMATION& gci = ServiceLocator::LocateGlobals().getConsoleInformation();
     // find the width of one row
-    const COORD coordScreenBufferSize = gci.GetActiveOutputBuffer().GetBufferSize().Dimensions();
+    const auto coordScreenBufferSize = gci.GetActiveOutputBuffer().GetBufferSize().Dimensions();
     return s_CompareCoords(coordScreenBufferSize, coordFirst, coordSecond);
 }
 
@@ -225,12 +225,12 @@ int Utils::s_CompareCoords(const COORD coordFirst, const COORD coordSecond) noex
 // - coordCorner - One of the corners of the given rectangle
 // Return Value:
 // - The opposite corner of the one given.
-COORD Utils::s_GetOppositeCorner(const SMALL_RECT srRectangle, const COORD coordCorner) noexcept
+til::coord Utils::s_GetOppositeCorner(const til::small_rect srRectangle, const til::coord coordCorner) noexcept
 {
     // Assert we were given coordinates that are indeed one of the corners of the rectangle.
-    FAIL_FAST_IF(!(coordCorner.X == srRectangle.Left || coordCorner.X == srRectangle.Right));
-    FAIL_FAST_IF(!(coordCorner.Y == srRectangle.Top || coordCorner.Y == srRectangle.Bottom));
+    FAIL_FAST_IF(!(coordCorner.x == srRectangle.left || coordCorner.x == srRectangle.right));
+    FAIL_FAST_IF(!(coordCorner.y == srRectangle.top || coordCorner.y == srRectangle.bottom));
 
-    return { (srRectangle.Left == coordCorner.X) ? srRectangle.Right : srRectangle.Left,
-             (srRectangle.Top == coordCorner.Y) ? srRectangle.Bottom : srRectangle.Top };
+    return { (srRectangle.left == coordCorner.x) ? srRectangle.right : srRectangle.left,
+             (srRectangle.top == coordCorner.y) ? srRectangle.bottom : srRectangle.top };
 }

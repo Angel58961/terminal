@@ -21,7 +21,7 @@ Revision History:
 #include "../buffer/out/TextAttribute.hpp"
 
 // To prevent invisible windows, set a lower threshold on window alpha channel.
-constexpr unsigned short MIN_WINDOW_OPACITY = 0x4D; // 0x4D is approximately 30% visible/opaque (70% transparent). Valid range is 0x00-0xff.
+constexpr unsigned char MIN_WINDOW_OPACITY = 0x4D; // 0x4D is approximately 30% visible/opaque (70% transparent). Valid range is 0x00-0xff.
 
 #include "ConsoleArguments.hpp"
 #include "../inc/conattrs.hpp"
@@ -113,24 +113,24 @@ public:
     WORD GetReserved() const;
     void SetReserved(const WORD wReserved);
 
-    COORD GetScreenBufferSize() const;
-    void SetScreenBufferSize(const COORD dwScreenBufferSize);
+    til::coord GetScreenBufferSize() const;
+    void SetScreenBufferSize(const til::coord dwScreenBufferSize);
 
-    COORD GetWindowSize() const;
-    void SetWindowSize(const COORD dwWindowSize);
+    til::coord GetWindowSize() const;
+    void SetWindowSize(const til::coord dwWindowSize);
 
     bool IsWindowSizePixelsValid() const;
-    COORD GetWindowSizePixels() const;
-    void SetWindowSizePixels(const COORD dwWindowSizePixels);
+    til::coord GetWindowSizePixels() const;
+    void SetWindowSizePixels(const til::coord dwWindowSizePixels);
 
-    COORD GetWindowOrigin() const;
-    void SetWindowOrigin(const COORD dwWindowOrigin);
+    til::coord GetWindowOrigin() const;
+    void SetWindowOrigin(const til::coord dwWindowOrigin);
 
     DWORD GetFont() const;
     void SetFont(const DWORD dwFont);
 
-    COORD GetFontSize() const;
-    void SetFontSize(const COORD dwFontSize);
+    til::coord GetFontSize() const;
+    void SetFontSize(const til::coord dwFontSize);
 
     UINT GetFontFamily() const;
     void SetFontFamily(const UINT uFontFamily);

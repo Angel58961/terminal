@@ -8,7 +8,7 @@
 FontInfo::FontInfo(const std::wstring_view& faceName,
                    const unsigned char family,
                    const unsigned int weight,
-                   const COORD coordSize,
+                   const til::coord coordSize,
                    const unsigned int codePage,
                    const bool fSetDefaultRasterFont /* = false */) noexcept :
     FontInfoBase(faceName, family, weight, fSetDefaultRasterFont, codePage),
@@ -26,12 +26,12 @@ bool FontInfo::operator==(const FontInfo& other) noexcept
            _coordSizeUnscaled == other._coordSizeUnscaled;
 }
 
-COORD FontInfo::GetUnscaledSize() const noexcept
+til::coord FontInfo::GetUnscaledSize() const noexcept
 {
     return _coordSizeUnscaled;
 }
 
-COORD FontInfo::GetSize() const noexcept
+til::coord FontInfo::GetSize() const noexcept
 {
     return _coordSize;
 }
@@ -40,8 +40,8 @@ void FontInfo::SetFromEngine(const std::wstring_view& faceName,
                              const unsigned char family,
                              const unsigned int weight,
                              const bool fSetDefaultRasterFont,
-                             const COORD coordSize,
-                             const COORD coordSizeUnscaled) noexcept
+                             const til::coord coordSize,
+                             const til::coord coordSizeUnscaled) noexcept
 {
     FontInfoBase::SetFromEngine(faceName,
                                 family,
@@ -74,16 +74,16 @@ void FontInfo::_ValidateCoordSize() noexcept
     if (!IsDefaultRasterFontNoSize())
     {
         // Initialize X to 1 so we don't divide by 0
-        if (_coordSize.X == 0)
+        if (_coordSize.x == 0)
         {
-            _coordSize.X = 1;
+            _coordSize.x = 1;
         }
 
         // If we have no font size, we want to use 8x12 by default
-        if (_coordSize.Y == 0)
+        if (_coordSize.y == 0)
         {
-            _coordSize.X = 8;
-            _coordSize.Y = 12;
+            _coordSize.x = 8;
+            _coordSize.y = 12;
 
             _coordSizeUnscaled = _coordSize;
         }

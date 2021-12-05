@@ -89,10 +89,10 @@ void CursorBlinker::TimerRoutine(SCREEN_INFORMATION& ScreenInfo)
         cursor.SetHasMoved(false);
 
         RECT rc;
-        rc.left = (position.X - viewport.Left()) * fontSize.X;
-        rc.top = (position.Y - viewport.Top()) * fontSize.Y;
-        rc.right = rc.left + fontSize.X;
-        rc.bottom = rc.top + fontSize.Y;
+        rc.left = (position.x - viewport.Left()) * fontSize.x;
+        rc.top = (position.y - viewport.Top()) * fontSize.y;
+        rc.right = rc.left + fontSize.x;
+        rc.bottom = rc.top + fontSize.y;
 
         pAccessibilityNotifier->NotifyConsoleCaretEvent(rc);
 
@@ -110,7 +110,7 @@ void CursorBlinker::TimerRoutine(SCREEN_INFORMATION& ScreenInfo)
                 flags = IAccessibilityNotifier::ConsoleCaretEventFlags::CaretVisible;
             }
 
-            pAccessibilityNotifier->NotifyConsoleCaretEvent(flags, MAKELONG(position.X, position.Y));
+            pAccessibilityNotifier->NotifyConsoleCaretEvent(flags, MAKELONG(position.x, position.y));
         }
     }
 

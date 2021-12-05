@@ -95,7 +95,7 @@ void DimensionsTests::TestGetLargestConsoleWindowSize()
     VERIFY_WIN32_BOOL_SUCCEEDED(OneCoreDelay::GetCurrentConsoleFont(Common::_hConsole, FALSE, &cfi), L"Get the current console font structure.");
 
     // Now use what we've learned to attempt to calculate the expected size
-    COORD coordExpected = { 0 };
+    til::coord coordExpected;
 
     RECT rcPixels = mi.rcWork; // start from the monitor work area as the maximum pixel size
 
@@ -114,11 +114,11 @@ void DimensionsTests::TestGetLargestConsoleWindowSize()
     // Do not reserve space for scroll bars.
 
     // Now take width and height and divide them by the size of a character to get the max character count.
-    coordExpected.X = (SHORT)((rcPixels.right - rcPixels.left) / cfi.dwFontSize.X);
-    coordExpected.Y = (SHORT)((rcPixels.bottom - rcPixels.top) / cfi.dwFontSize.Y);
+    coordExpected.x = (SHORT)((rcPixels.right - rcPixels.left) / cfi.dwFontSize.x);
+    coordExpected.y = (SHORT)((rcPixels.bottom - rcPixels.top) / cfi.dwFontSize.y);
 
     // Now finally ask the console what it thinks its largest size should be and compare.
-    COORD const coordLargest = GetLargestConsoleWindowSize(Common::_hConsole);
+    const auto coordLargest = GetLargestConsoleWindowSize(Common::_hConsole);
     VerifySucceededGLE(VERIFY_IS_NOT_NULL(coordLargest, L"Now ask what the console thinks the largest size should be."));
 
     VERIFY_ARE_EQUAL(coordExpected, coordLargest, L"Compare what we calculated to what the console says the largest size should be.");
@@ -143,31 +143,31 @@ void DimensionsTests::TestGetConsoleScreenBufferInfoAndEx()
     VERIFY_ARE_EQUAL(sbi.wAttributes, sbiex.wAttributes);
 }
 
-void ConvertAbsoluteToRelative(bool const bAbsolute, SMALL_RECT* const srViewport, const SMALL_RECT* const srOriginalWindow)
+void ConvertAbsoluteToRelative(bool const bAbsolute, til::small_rect* const srViewport, const til::small_rect* const srOriginalWindow)
 {
     if (!bAbsolute)
     {
-        srViewport->Left -= srOriginalWindow->Left;
-        srViewport->Right -= srOriginalWindow->Right;
-        srViewport->Top -= srOriginalWindow->Top;
-        srViewport->Bottom -= srOriginalWindow->Bottom;
+        srViewport->left -= srOriginalWindow->left;
+        srViewport->right -= srOriginalWindow->right;
+        srViewport->top -= srOriginalWindow->top;
+        srViewport->bottom -= srOriginalWindow->bottom;
     }
 }
 
 void TestSetConsoleWindowInfoHelper(bool const bAbsolute,
-                                    const SMALL_RECT* const srViewport,
-                                    const SMALL_RECT* const srOriginalViewport,
+                                    const til::small_rect* const srViewport,
+                                    const til::small_rect* const srOriginalViewport,
                                     bool const bExpectedResult,
                                     PCWSTR pwszDescription)
 {
-    SMALL_RECT srTest = *srViewport;
+    auto srTest = *srViewport;
 
     ConvertAbsoluteToRelative(bAbsolute, &srTest, srOriginalViewport);
 
     Log::Comment(NoThrowString().Format(L"Abs:%s Original:%s Viewport:%s",
                                         bAbsolute ? L"True" : L"False",
-                                        VerifyOutputTraits<SMALL_RECT>::ToString(*srOriginalViewport).ToCStrWithFallbackTo(L"Fail To Display SMALL_RECT"),
-                                        VerifyOutputTraits<SMALL_RECT>::ToString(srTest).ToCStrWithFallbackTo(L"Fail To Display SMALL_RECT")));
+                                        VerifyOutputTraits<til::small_rect>::ToString(*srOriginalViewport).ToCStrWithFallbackTo(L"Fail To Display til::small_rect"),
+                                        VerifyOutputTraits<til::small_rect>::ToString(srTest).ToCStrWithFallbackTo(L"Fail To Display til::small_rect")));
 
     if (bExpectedResult)
     {
@@ -189,23 +189,23 @@ void DimensionsTests::TestSetConsoleWindowInfo()
     sbiex.cbSize = sizeof(CONSOLE_SCREEN_BUFFER_INFOEX);
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(Common::_hConsole, &sbiex), L"Get initial buffer and window information.");
 
-    SMALL_RECT srViewport = { 0 };
+    til::small_rect srViewport;
 
     // Test with and without absolute
     // Left > Right, Top > Bottom (INVALID)
-    srViewport.Right = sbiex.srWindow.Left;
-    srViewport.Left = sbiex.srWindow.Right;
-    srViewport.Bottom = sbiex.srWindow.Top;
-    srViewport.Top = sbiex.srWindow.Bottom;
+    srViewport.right = sbiex.srWindow.left;
+    srViewport.left = sbiex.srWindow.right;
+    srViewport.bottom = sbiex.srWindow.top;
+    srViewport.top = sbiex.srWindow.bottom;
 
     TestSetConsoleWindowInfoHelper(bAbsolute, &srViewport, &sbiex.srWindow, false, L"Ensure Left > Right, Top > Bottom is marked invalid.");
 
     // Window greater than, equal to and less than the max client window
     // Window > Max ( INVALID )
-    srViewport.Left = 0;
-    srViewport.Top = 0;
-    srViewport.Right = sbiex.dwMaximumWindowSize.X; // this is 1 larger than the valid right bound since it's 0-based array indexes
-    srViewport.Bottom = sbiex.dwMaximumWindowSize.Y;
+    srViewport.left = 0;
+    srViewport.top = 0;
+    srViewport.right = sbiex.dwMaximumWindowSize.x; // this is 1 larger than the valid right bound since it's 0-based array indexes
+    srViewport.bottom = sbiex.dwMaximumWindowSize.y;
 
     TestSetConsoleWindowInfoHelper(bAbsolute, &srViewport, &sbiex.srWindow, false, L"Ensure window larger than max is marked invalid.");
 
@@ -221,22 +221,22 @@ void DimensionsTests::TestSetConsoleWindowInfo()
 
     // Finally, check roundtrip by changing window.
     srViewport = sbiex.srWindow;
-    srViewport.Left += 1;
-    srViewport.Right -= 1;
-    srViewport.Top += 1;
-    srViewport.Bottom -= 1;
+    srViewport.left += 1;
+    srViewport.right -= 1;
+    srViewport.top += 1;
+    srViewport.bottom -= 1;
 
     // Verify the assumption that the viewport was sufficiently large to shrink it in the above manner.
-    if (srViewport.Left > srViewport.Right ||
-        srViewport.Top > srViewport.Bottom ||
-        (srViewport.Right - srViewport.Left) < 1 ||
-        (srViewport.Bottom - srViewport.Top) < 1)
+    if (srViewport.left > srViewport.right ||
+        srViewport.top > srViewport.bottom ||
+        (srViewport.right - srViewport.left) < 1 ||
+        (srViewport.bottom - srViewport.top) < 1)
     {
-        VERIFY_FAIL(NoThrowString().Format(L"Adjusted viewport is invalid. %s", VerifyOutputTraits<SMALL_RECT>::ToString(srViewport).GetBuffer()));
+        VERIFY_FAIL(NoThrowString().Format(L"Adjusted viewport is invalid. %s", VerifyOutputTraits<til::small_rect>::ToString(srViewport).GetBuffer()));
     }
 
     // Store a copy of the original (for comparison in case the relative translation is applied).
-    SMALL_RECT const srViewportBefore = srViewport;
+    const auto srViewportBefore = srViewport;
 
     TestSetConsoleWindowInfoHelper(bAbsolute, &srViewport, &sbiex.srWindow, true, L"Attempt shrinking the window in a valid manner.");
 
@@ -247,16 +247,16 @@ void DimensionsTests::TestSetConsoleWindowInfo()
     VERIFY_ARE_EQUAL(srViewportBefore, sbi.srWindow, L"Match before and after viewport sizes.");
 }
 
-void RestrictDimensionsHelper(COORD* const coordTest, SHORT const x, SHORT const y, bool const fUseX, bool const fUseY)
+void RestrictDimensionsHelper(til::coord* const coordTest, SHORT const x, SHORT const y, bool const fUseX, bool const fUseY)
 {
     if (fUseX)
     {
-        coordTest->X = x;
+        coordTest->x = x;
     }
 
     if (fUseY)
     {
-        coordTest->Y = y;
+        coordTest->y = y;
     }
 }
 
@@ -282,7 +282,7 @@ void DimensionsTests::TestSetConsoleScreenBufferSize()
     CONSOLE_SCREEN_BUFFER_INFO sbi = { 0 };
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfo(Common::_hConsole, &sbi), L"Get initial buffer/window information.");
 
-    COORD coordSize = { 0 };
+    til::coord coordSize;
 
     // Ensure buffer size cannot be smaller than minimum
     RestrictDimensionsHelper(&coordSize, 0, 0, fAdjustX, fAdjustY);
@@ -301,26 +301,26 @@ void DimensionsTests::TestSetConsoleScreenBufferSize()
     VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferSize(Common::_hConsole, coordSize), L"Set it to the same size as initial.");
 
     // save the dimensions of the window for use in tests relative to window size
-    COORD coordWindowDim;
-    coordWindowDim.X = sbi.srWindow.Right - sbi.srWindow.Left;
-    coordWindowDim.Y = sbi.srWindow.Bottom - sbi.srWindow.Top;
+    til::coord coordWindowDim;
+    coordWindowDim.x = sbi.srWindow.right - sbi.srWindow.left;
+    coordWindowDim.y = sbi.srWindow.bottom - sbi.srWindow.top;
 
     // Ensure buffer size cannot be smaller than the window
     coordSize = coordWindowDim;
-    RestrictDimensionsHelper(&coordSize, coordSize.X - 1, coordSize.Y - 1, fAdjustX, fAdjustY);
+    RestrictDimensionsHelper(&coordSize, coordSize.x - 1, coordSize.y - 1, fAdjustX, fAdjustY);
     VERIFY_WIN32_BOOL_FAILED(SetConsoleScreenBufferSize(Common::_hConsole, coordSize), L"Try to make buffer smaller than the window size.");
 
     // Success on setting a buffer larger than the window
     coordSize = coordWindowDim;
-    coordSize.X++;
-    coordSize.Y++;
+    coordSize.x++;
+    coordSize.y++;
     VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferSize(Common::_hConsole, coordSize), L"Try to make buffer larger than the window size.");
 }
 
 void DimensionsTests::TestZeroSizedConsoleScreenBuffers()
 {
     // Make sure we never accept zero-sized console buffers through the public API
-    const COORD rgTestCoords[] = {
+    const til::coord rgTestCoords[] = {
         { 0, 0 },
         { 0, 1 },
         { 1, 0 }
@@ -331,8 +331,8 @@ void DimensionsTests::TestZeroSizedConsoleScreenBuffers()
         const BOOL fSucceeded = SetConsoleScreenBufferSize(Common::_hConsole, rgTestCoords[i]);
         VERIFY_IS_FALSE(!!fSucceeded,
                         NoThrowString().Format(L"Setting zero console size should always fail (x: %d y:%d)",
-                                               rgTestCoords[i].X,
-                                               rgTestCoords[i].Y));
+                                               rgTestCoords[i].x,
+                                               rgTestCoords[i].y));
         VERIFY_ARE_EQUAL((DWORD)ERROR_INVALID_PARAMETER, GetLastError());
     }
 }
@@ -381,23 +381,23 @@ void DimensionsTests::TestSetConsoleScreenBufferInfoEx()
 
     // check invalid values of viewport size
     sbiex = sbiexOriginal;
-    sbiex.dwSize.X = 0;
-    sbiex.dwSize.Y = 0;
+    sbiex.dwSize.x = 0;
+    sbiex.dwSize.y = 0;
     VERIFY_WIN32_BOOL_FAILED(SetConsoleScreenBufferInfoEx(Common::_hConsole, &sbiex), L"Try 0x0 viewport size.");
 
     sbiex = sbiexOriginal;
-    sbiex.dwSize.X = MAXSHORT;
-    sbiex.dwSize.Y = MAXSHORT;
+    sbiex.dwSize.x = MAXSHORT;
+    sbiex.dwSize.y = MAXSHORT;
     VERIFY_WIN32_BOOL_FAILED(SetConsoleScreenBufferInfoEx(Common::_hConsole, &sbiex), L"Try MAX by MAX viewport size.");
 
     // Fill the entire structure with new data and set
-    sbiex.dwSize.X = 200;
-    sbiex.dwSize.Y = 5555;
+    sbiex.dwSize.x = 200;
+    sbiex.dwSize.y = 5555;
 
-    sbiex.srWindow.Left = 0;
-    sbiex.srWindow.Right = 79;
-    sbiex.srWindow.Top = 0;
-    sbiex.srWindow.Bottom = 49;
+    sbiex.srWindow.left = 0;
+    sbiex.srWindow.right = 79;
+    sbiex.srWindow.top = 0;
+    sbiex.srWindow.bottom = 49;
 
     sbiex.wAttributes = BACKGROUND_BLUE | BACKGROUND_INTENSITY | FOREGROUND_RED;
     sbiex.wPopupAttributes = BACKGROUND_GREEN | FOREGROUND_RED;
@@ -419,8 +419,8 @@ void DimensionsTests::TestSetConsoleScreenBufferInfoEx()
     sbiex.ColorTable[14] = 0x00FFF000;
     sbiex.ColorTable[15] = 0x0000FFFF;
 
-    sbiex.dwMaximumWindowSize.X = 100;
-    sbiex.dwMaximumWindowSize.Y = 80;
+    sbiex.dwMaximumWindowSize.x = 100;
+    sbiex.dwMaximumWindowSize.y = 80;
 
     sbiex.bFullscreenSupported = !sbiex.bFullscreenSupported; // set to opposite
 
@@ -442,34 +442,34 @@ void DimensionsTests::TestSetConsoleScreenBufferInfoEx()
     bool fBufferSizePassed = false;
 
     // 1. The buffer size we set matches exactly with what we retrieved after it was done. (classic behavior, no word wrap)
-    if (VerifyCompareTraits<COORD, COORD>().AreEqual(sbiex.dwSize, sbiexAfter.dwSize))
+    if (VerifyCompareTraits<til::coord, til::coord>().AreEqual(sbiex.dwSize, sbiexAfter.dwSize))
     {
         fBufferSizePassed = true;
     }
 
     // 2. The buffer size is restricted/pegged to the width (X dimension) of the window. (new behavior, word wrap)
-    short sWidthLimit = (sbiex.srWindow.Right - sbiex.srWindow.Left) + 1; // the right index counts as valid, so right - left + 1 for total width.
+    auto sWidthLimit = (sbiex.srWindow.right - sbiex.srWindow.left) + 1; // the right index counts as valid, so right - left + 1 for total width.
 
     // 2a. Width expected might be reduced if the buffer is taller than the window. If so, reduce by a scroll bar in width.
-    if (sbiex.dwSize.Y > ((sbiex.srWindow.Bottom - sbiex.srWindow.Top) + 1)) // the bottom index counts as valid, so bottom - top + 1 for total height.
+    if (sbiex.dwSize.y > ((sbiex.srWindow.bottom - sbiex.srWindow.top) + 1)) // the bottom index counts as valid, so bottom - top + 1 for total height.
     {
         // Get pixel size of a vertical scroll bar.
-        short const sVerticalScrollWidthPx = (SHORT)GetSystemMetrics(SM_CXVSCROLL);
+        const auto sVerticalScrollWidthPx = (SHORT)GetSystemMetrics(SM_CXVSCROLL);
 
         // Get the current font size
         CONSOLE_FONT_INFO cfi;
         VERIFY_WIN32_BOOL_SUCCEEDED(OneCoreDelay::GetCurrentConsoleFont(Common::_hConsole, FALSE, &cfi), L"Get the current console font structure.");
 
-        if (VERIFY_ARE_NOT_EQUAL(0, cfi.dwFontSize.X, L"Verify that the font width is not zero or we'll have a division error."))
+        if (VERIFY_ARE_NOT_EQUAL(0, cfi.dwFontSize.x, L"Verify that the font width is not zero or we'll have a division error."))
         {
             // Figure out how many character widths to reduce by.
-            short sReduceBy = 0;
+            auto sReduceBy = 0;
 
             // Divide the size of a scroll bar by the font widths.
-            sReduceBy = sVerticalScrollWidthPx / cfi.dwFontSize.X;
+            sReduceBy = sVerticalScrollWidthPx / cfi.dwFontSize.x;
 
             // If there is a remainder, add one more. We can't render partial characters.
-            sReduceBy += sVerticalScrollWidthPx % cfi.dwFontSize.X ? 1 : 0;
+            sReduceBy += sVerticalScrollWidthPx % cfi.dwFontSize.x ? 1 : 0;
 
             // Subtract the number of characters being reserved for the scroll bar.
             sWidthLimit -= sReduceBy;
@@ -477,7 +477,7 @@ void DimensionsTests::TestSetConsoleScreenBufferInfoEx()
     }
 
     // 2b. Do the comparison. Y should be correct, but X will be the lesser of the size we asked for or the window limit for word wrap.
-    if (sbiex.dwSize.Y == sbiexAfter.dwSize.Y && std::min(sbiex.dwSize.X, sWidthLimit) == sbiexAfter.dwSize.X)
+    if (sbiex.dwSize.y == sbiexAfter.dwSize.y && std::min(sbiex.dwSize.x, sWidthLimit) == sbiexAfter.dwSize.x)
     {
         fBufferSizePassed = true;
     }
@@ -508,8 +508,8 @@ void DimensionsTests::TestSetConsoleScreenBufferInfoEx()
     //      As this has lasted so long, it's likely a compat issue to fix now. So we'll leave it in and compensate for it in the test here.
     // See: https://msdn.microsoft.com/en-us/library/windows/desktop/ms686039(v=vs.85).aspx
     CONSOLE_SCREEN_BUFFER_INFOEX sbiexBug = sbiexOriginal;
-    sbiexBug.srWindow.Bottom++;
-    sbiexBug.srWindow.Right++;
+    sbiexBug.srWindow.bottom++;
+    sbiexBug.srWindow.right++;
 
     // Restore original settings
     VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferInfoEx(Common::_hConsole, &sbiexBug), L"Restore original settings.");

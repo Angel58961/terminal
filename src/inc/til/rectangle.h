@@ -3,12 +3,60 @@
 
 #pragma once
 
+#include "bit.h"
+#include "some.h"
+#include "math.h"
+#include "size.h"
+#include "point.h"
+#include "operators.h"
+
 #ifdef UNIT_TESTING
 class RectangleTests;
 #endif
 
 namespace til // Terminal Implementation Library. Also: "Today I Learned"
 {
+    template<typename T>
+    struct rect
+    {
+        T left{};
+        T top{};
+        T right{};
+        T bottom{};
+
+        constexpr bool operator==(const rect& rhs) const noexcept
+        {
+            return __builtin_memcmp(this, &rhs, sizeof(rhs)) == 0;
+        }
+
+        constexpr bool operator!=(const rect& rhs) const noexcept
+        {
+            return __builtin_memcmp(this, &rhs, sizeof(rhs)) != 0;
+        }
+    };
+
+    using u16r = rect<uint16_t>;
+    using i16r = rect<int16_t>;
+    using u32r = rect<uint32_t>;
+    using i32r = rect<int32_t>;
+
+    using small_rect = i32r;
+
+    constexpr small_rect wrap_small_rect(const SMALL_RECT& rect) noexcept
+    {
+        return { rect.Left, rect.Top, rect.Right, rect.Bottom };
+    }
+
+    constexpr SMALL_RECT unwrap_small_rect(const small_rect& rect)
+    {
+        return {
+            gsl::narrow<short>(rect.left),
+            gsl::narrow<short>(rect.top),
+            gsl::narrow<short>(rect.right),
+            gsl::narrow<short>(rect.bottom),
+        };
+    }
+
     namespace details
     {
         class _rectangle_const_iterator
@@ -30,12 +78,12 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
 
             _rectangle_const_iterator& operator++()
             {
-                ptrdiff_t nextX;
+                CoordType nextX;
                 THROW_HR_IF(E_ABORT, !::base::CheckAdd(_current.x(), 1).AssignIfValid(&nextX));
 
                 if (nextX >= _bottomRight.x())
                 {
-                    ptrdiff_t nextY;
+                    CoordType nextY;
                     THROW_HR_IF(E_ABORT, !::base::CheckAdd(_current.y(), 1).AssignIfValid(&nextY));
                     // Note for the standard Left-to-Right, Top-to-Bottom walk,
                     // the end position is one cell below the bottom left.
@@ -93,27 +141,9 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
     public:
         using const_iterator = details::_rectangle_const_iterator;
 
-        constexpr rectangle() noexcept :
-            rectangle(til::point{ 0, 0 }, til::point{ 0, 0 })
-        {
-        }
-
-        // On 64-bit processors, int and ptrdiff_t are different fundamental types.
-        // On 32-bit processors, they're the same which makes this a double-definition
-        // with the `ptrdiff_t` one below.
-#if defined(_M_AMD64) || defined(_M_ARM64)
-        constexpr rectangle(int left, int top, int right, int bottom) noexcept :
-            rectangle(til::point{ left, top }, til::point{ right, bottom })
-        {
-        }
-#endif
-
-        rectangle(size_t left, size_t top, size_t right, size_t bottom) :
-            rectangle(til::point{ left, top }, til::point{ right, bottom })
-        {
-        }
-
-        constexpr rectangle(ptrdiff_t left, ptrdiff_t top, ptrdiff_t right, ptrdiff_t bottom) noexcept :
+        constexpr rectangle() noexcept = default;
+        
+        constexpr rectangle(CoordType left, CoordType top, CoordType right, CoordType bottom) noexcept :
             rectangle(til::point{ left, top }, til::point{ right, bottom })
         {
         }
@@ -155,23 +185,29 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         // It will perform math on the way in to ensure that it is represented as EXCLUSIVE.
         rectangle(SMALL_RECT sr)
         {
-            _topLeft = til::point{ static_cast<ptrdiff_t>(sr.Left), static_cast<ptrdiff_t>(sr.Top) };
+            _topLeft = til::point{ static_cast<CoordType>(sr.Left), static_cast<CoordType>(sr.Top) };
 
-            _bottomRight = til::point{ static_cast<ptrdiff_t>(sr.Right), static_cast<ptrdiff_t>(sr.Bottom) } + til::point{ 1, 1 };
+            _bottomRight = til::point{ static_cast<CoordType>(sr.Right), static_cast<CoordType>(sr.Bottom) } + til::point{ 1, 1 };
         }
 #endif
+
+        template<typename T>
+        rectangle(const rect<T>& other) :
+            rectangle(til::point{ static_cast<CoordType>(other.left), static_cast<CoordType>(other.top) }, til::point{ static_cast<CoordType>(other.right), static_cast<CoordType>(other.bottom) })
+        {
+        }
 
         // This template will convert to rectangle from anything that has a Left, Top, Right, and Bottom field that appear convertible to an integer value
         template<typename TOther>
         constexpr rectangle(const TOther& other, std::enable_if_t<std::is_integral_v<decltype(std::declval<TOther>().Top)> && std::is_integral_v<decltype(std::declval<TOther>().Left)> && std::is_integral_v<decltype(std::declval<TOther>().Bottom)> && std::is_integral_v<decltype(std::declval<TOther>().Right)>, int> /*sentinel*/ = 0) :
-            rectangle(til::point{ static_cast<ptrdiff_t>(other.Left), static_cast<ptrdiff_t>(other.Top) }, til::point{ static_cast<ptrdiff_t>(other.Right), static_cast<ptrdiff_t>(other.Bottom) })
+            rectangle(til::point{ static_cast<CoordType>(other.Left), static_cast<CoordType>(other.Top) }, til::point{ static_cast<CoordType>(other.Right), static_cast<CoordType>(other.Bottom) })
         {
         }
 
         // This template will convert to rectangle from anything that has a left, top, right, and bottom field that appear convertible to an integer value
         template<typename TOther>
         constexpr rectangle(const TOther& other, std::enable_if_t<std::is_integral_v<decltype(std::declval<TOther>().top)> && std::is_integral_v<decltype(std::declval<TOther>().left)> && std::is_integral_v<decltype(std::declval<TOther>().bottom)> && std::is_integral_v<decltype(std::declval<TOther>().right)>, int> /*sentinel*/ = 0) :
-            rectangle(til::point{ static_cast<ptrdiff_t>(other.left), static_cast<ptrdiff_t>(other.top) }, til::point{ static_cast<ptrdiff_t>(other.right), static_cast<ptrdiff_t>(other.bottom) })
+            rectangle(til::point{ static_cast<CoordType>(other.left), static_cast<CoordType>(other.top) }, til::point{ static_cast<CoordType>(other.right), static_cast<CoordType>(other.bottom) })
         {
         }
 
@@ -179,7 +215,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         // a math type is required.
         template<typename TilMath, typename TOther>
         constexpr rectangle(TilMath, const TOther& other, std::enable_if_t<std::is_floating_point_v<decltype(std::declval<TOther>().Left)> && std::is_floating_point_v<decltype(std::declval<TOther>().Top)> && std::is_floating_point_v<decltype(std::declval<TOther>().Right)> && std::is_floating_point_v<decltype(std::declval<TOther>().Bottom)>, int> /*sentinel*/ = 0) :
-            rectangle(til::point{ TilMath::template cast<ptrdiff_t>(other.Left), TilMath::template cast<ptrdiff_t>(other.Top) }, til::point{ TilMath::template cast<ptrdiff_t>(other.Right), TilMath::template cast<ptrdiff_t>(other.Bottom) })
+            rectangle(til::point{ TilMath::template cast<CoordType>(other.Left), TilMath::template cast<CoordType>(other.Top) }, til::point{ TilMath::template cast<CoordType>(other.Right), TilMath::template cast<CoordType>(other.Bottom) })
         {
         }
 
@@ -187,7 +223,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         // a math type is required.
         template<typename TilMath, typename TOther>
         constexpr rectangle(TilMath, const TOther& other, std::enable_if_t<std::is_floating_point_v<decltype(std::declval<TOther>().X)> && std::is_floating_point_v<decltype(std::declval<TOther>().Y)> && std::is_floating_point_v<decltype(std::declval<TOther>().Width)> && std::is_floating_point_v<decltype(std::declval<TOther>().Height)>, int> /*sentinel*/ = 0) :
-            rectangle(til::point{ TilMath::template cast<ptrdiff_t>(other.X), TilMath::template cast<ptrdiff_t>(other.Y) }, til::size{ TilMath::template cast<ptrdiff_t>(other.Width), TilMath::template cast<ptrdiff_t>(other.Height) })
+            rectangle(til::point{ TilMath::template cast<CoordType>(other.X), TilMath::template cast<CoordType>(other.Y) }, til::size{ TilMath::template cast<CoordType>(other.Width), TilMath::template cast<CoordType>(other.Height) })
         {
         }
 
@@ -195,7 +231,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         // a math type is required.
         template<typename TilMath, typename TOther>
         constexpr rectangle(TilMath, const TOther& other, std::enable_if_t<std::is_floating_point_v<decltype(std::declval<TOther>().left)> && std::is_floating_point_v<decltype(std::declval<TOther>().top)> && std::is_floating_point_v<decltype(std::declval<TOther>().right)> && std::is_floating_point_v<decltype(std::declval<TOther>().bottom)>, int> /*sentinel*/ = 0) :
-            rectangle(til::point{ TilMath::template cast<ptrdiff_t>(other.left), TilMath::template cast<ptrdiff_t>(other.top) }, til::point{ TilMath::template cast<ptrdiff_t>(other.right), TilMath::template cast<ptrdiff_t>(other.bottom) })
+            rectangle(til::point{ TilMath::template cast<CoordType>(other.left), TilMath::template cast<CoordType>(other.top) }, til::point{ TilMath::template cast<CoordType>(other.right), TilMath::template cast<CoordType>(other.bottom) })
         {
         }
 
@@ -438,7 +474,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         // ADD will translate (offset) the rectangle by the point.
         rectangle operator+(const point& point) const
         {
-            ptrdiff_t l, t, r, b;
+            CoordType l, t, r, b;
 
             THROW_HR_IF(E_ABORT, !::base::CheckAdd(left(), point.x()).AssignIfValid(&l));
             THROW_HR_IF(E_ABORT, !::base::CheckAdd(top(), point.y()).AssignIfValid(&t));
@@ -457,7 +493,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         // SUB will translate (offset) the rectangle by the point.
         rectangle operator-(const point& point) const
         {
-            ptrdiff_t l, t, r, b;
+            CoordType l, t, r, b;
 
             THROW_HR_IF(E_ABORT, !::base::CheckSub(left(), point.x()).AssignIfValid(&l));
             THROW_HR_IF(E_ABORT, !::base::CheckSub(top(), point.y()).AssignIfValid(&t));
@@ -690,7 +726,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
 
 #pragma endregion
 
-        constexpr ptrdiff_t top() const noexcept
+        constexpr CoordType top() const noexcept
         {
             return _topLeft.y();
         }
@@ -703,7 +739,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return ret;
         }
 
-        constexpr ptrdiff_t bottom() const noexcept
+        constexpr CoordType bottom() const noexcept
         {
             return _bottomRight.y();
         }
@@ -716,7 +752,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return ret;
         }
 
-        constexpr ptrdiff_t left() const noexcept
+        constexpr CoordType left() const noexcept
         {
             return _topLeft.x();
         }
@@ -729,7 +765,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return ret;
         }
 
-        constexpr ptrdiff_t right() const noexcept
+        constexpr CoordType right() const noexcept
         {
             return _bottomRight.x();
         }
@@ -742,9 +778,9 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return ret;
         }
 
-        ptrdiff_t width() const
+        CoordType width() const
         {
-            ptrdiff_t ret;
+            CoordType ret;
             THROW_HR_IF(E_ABORT, !::base::CheckSub(right(), left()).AssignIfValid(&ret));
             return ret;
         }
@@ -757,9 +793,9 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return ret;
         }
 
-        ptrdiff_t height() const
+        CoordType height() const
         {
-            ptrdiff_t ret;
+            CoordType ret;
             THROW_HR_IF(E_ABORT, !::base::CheckSub(bottom(), top()).AssignIfValid(&ret));
             return ret;
         }
@@ -793,7 +829,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
                    pt.y() >= _topLeft.y() && pt.y() < _bottomRight.y();
         }
 
-        bool contains(ptrdiff_t index) const
+        bool contains(CoordType index) const
         {
             return index >= 0 && index < size().area();
         }
@@ -806,7 +842,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             return (*this | rc) == *this;
         }
 
-        ptrdiff_t index_of(til::point pt) const
+        CoordType index_of(til::point pt) const
         {
             THROW_HR_IF(E_INVALIDARG, !contains(pt));
 
@@ -821,12 +857,12 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             // and subtract left to find the offset from left edge.
             check = check + pt.x() - left();
 
-            ptrdiff_t result;
+            CoordType result;
             THROW_HR_IF(E_ABORT, !check.AssignIfValid(&result));
             return result;
         }
 
-        til::point point_at(ptrdiff_t index) const
+        til::point point_at(CoordType index) const
         {
             THROW_HR_IF(E_INVALIDARG, !contains(index));
 
@@ -836,6 +872,18 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
             // that the point can't be in bounds of a rectangle where
             // this would overflow on addition after the division.
             return til::point{ div.rem + left(), div.quot + top() };
+        }
+
+        template<typename T>
+        T to_rect() const
+        {
+            T ret;
+            using I = decltype(ret.left);
+            ret.left = gsl::narrow<I>(left());
+            ret.top = gsl::narrow<I>(top());
+            ret.right = gsl::narrow<I>(right());
+            ret.bottom = gsl::narrow<I>(bottom());
+            return ret;
         }
 
 #ifdef _WINCONTYPES_

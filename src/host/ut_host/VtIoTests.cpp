@@ -80,10 +80,10 @@ void VtIoTests::ModeParsingTest()
 
 Viewport SetUpViewport()
 {
-    SMALL_RECT view = {};
-    view.Top = view.Left = 0;
-    view.Bottom = 31;
-    view.Right = 79;
+    til::small_rect view;
+    view.top = view.left = 0;
+    view.bottom = 31;
+    view.right = 79;
 
     return Viewport::FromInclusive(view);
 }
@@ -262,9 +262,9 @@ public:
         return Microsoft::Console::Types::Viewport{};
     }
 
-    COORD GetTextBufferEndPosition() const noexcept override
+    til::coord GetTextBufferEndPosition() const noexcept override
     {
-        return COORD{};
+        return til::coord{};
     }
 
     const TextBuffer& GetTextBuffer() noexcept override
@@ -300,9 +300,9 @@ public:
         return std::make_pair(COLORREF{}, COLORREF{});
     }
 
-    COORD GetCursorPosition() const noexcept override
+    til::coord GetCursorPosition() const noexcept override
     {
-        return COORD{};
+        return til::coord{};
     }
 
     bool IsCursorVisible() const noexcept override
@@ -374,21 +374,21 @@ public:
     {
     }
 
-    void SelectNewRegion(const COORD /*coordStart*/, const COORD /*coordEnd*/) override
+    void SelectNewRegion(const til::coord /*coordStart*/, const til::coord /*coordEnd*/) override
     {
     }
 
-    const COORD GetSelectionAnchor() const noexcept
+    const til::coord GetSelectionAnchor() const noexcept
     {
-        return COORD{};
+        return til::coord{};
     }
 
-    const COORD GetSelectionEnd() const noexcept
+    const til::coord GetSelectionEnd() const noexcept
     {
-        return COORD{};
+        return til::coord{};
     }
 
-    void ColorSelection(const COORD /*coordSelectionStart*/, const COORD /*coordSelectionEnd*/, const TextAttribute /*attr*/)
+    void ColorSelection(const til::coord /*coordSelectionStart*/, const til::coord /*coordSelectionEnd*/, const TextAttribute /*attr*/)
     {
     }
 
@@ -407,7 +407,7 @@ public:
         return {};
     }
 
-    const std::vector<size_t> GetPatternId(const COORD /*location*/) const noexcept
+    const std::vector<size_t> GetPatternId(const til::coord /*location*/) const noexcept
     {
         return {};
     }

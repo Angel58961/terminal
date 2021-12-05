@@ -70,7 +70,7 @@ class MultipleInflightMessageTests
             // !!! LOAD BEARING !!!
             // This buffer must be large enough to trigger a *re-allocation* in the API message handler.
             std::array<wchar_t, 4096> anEvenLargerBuffer;
-            VERIFY_WIN32_BOOL_SUCCEEDED(ReadConsoleOutputCharacterW(outputHandle, anEvenLargerBuffer.data(), static_cast<DWORD>(anEvenLargerBuffer.size()), COORD{ 1, 1 }, &temp)); // has payload (output buffer)
+            VERIFY_WIN32_BOOL_SUCCEEDED(ReadConsoleOutputCharacterW(outputHandle, anEvenLargerBuffer.data(), static_cast<DWORD>(anEvenLargerBuffer.size()), til::coord{ 1, 1 }, &temp)); // has payload (output buffer)
             VERIFY_ARE_EQUAL(4096u, temp);
 
             const std::array<INPUT_RECORD, 2> inputRecords{

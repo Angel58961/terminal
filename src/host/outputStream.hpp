@@ -57,20 +57,20 @@ public:
     bool GetConsoleScreenBufferInfoEx(CONSOLE_SCREEN_BUFFER_INFOEX& screenBufferInfo) const override;
     bool SetConsoleScreenBufferInfoEx(const CONSOLE_SCREEN_BUFFER_INFOEX& screenBufferInfo) override;
 
-    bool SetConsoleCursorPosition(const COORD position) override;
+    bool SetConsoleCursorPosition(const til::coord position) override;
 
     bool PrivateGetTextAttributes(TextAttribute& attrs) const override;
     bool PrivateSetTextAttributes(const TextAttribute& attrs) override;
 
     bool PrivateSetCurrentLineRendition(const LineRendition lineRendition) override;
-    bool PrivateResetLineRenditionRange(const size_t startRow, const size_t endRow) override;
-    SHORT PrivateGetLineWidth(const size_t row) const override;
+    bool PrivateResetLineRenditionRange(const til::CoordType startRow, const til::CoordType endRow) override;
+    til::CoordType PrivateGetLineWidth(const til::CoordType row) const override;
 
     bool PrivateWriteConsoleInputW(std::deque<std::unique_ptr<IInputEvent>>& events,
                                    size_t& eventsWritten) override;
 
     bool SetConsoleWindowInfo(bool const absolute,
-                              const SMALL_RECT& window) override;
+                              const til::small_rect& window) override;
 
     bool SetInputMode(const Microsoft::Console::VirtualTerminal::TerminalInput::Mode mode, const bool enabled) override;
     bool SetParserMode(const Microsoft::Console::VirtualTerminal::StateMachine::Mode mode, const bool enabled) override;
@@ -82,7 +82,7 @@ public:
     bool PrivateShowCursor(const bool show) noexcept override;
     bool PrivateAllowCursorBlinking(const bool enable) override;
 
-    bool PrivateSetScrollingRegion(const SMALL_RECT& scrollMargins) override;
+    bool PrivateSetScrollingRegion(const til::small_rect& scrollMargins) override;
 
     bool PrivateWarningBell() override;
 
@@ -113,22 +113,22 @@ public:
 
     bool IsConsolePty() const override;
 
-    bool DeleteLines(const size_t count) override;
-    bool InsertLines(const size_t count) override;
+    bool DeleteLines(const til::CoordType count) override;
+    bool InsertLines(const til::CoordType count) override;
 
     bool MoveToBottom() const override;
 
     COLORREF GetColorTableEntry(const size_t tableIndex) const noexcept override;
     bool SetColorTableEntry(const size_t tableIndex, const COLORREF color) noexcept override;
 
-    bool PrivateFillRegion(const COORD startPosition,
+    bool PrivateFillRegion(const til::coord startPosition,
                            const size_t fillLength,
                            const wchar_t fillChar,
                            const bool standardFillAttrs) noexcept override;
 
-    bool PrivateScrollRegion(const SMALL_RECT scrollRect,
-                             const std::optional<SMALL_RECT> clipRect,
-                             const COORD destinationOrigin,
+    bool PrivateScrollRegion(const til::small_rect scrollRect,
+                             const std::optional<til::small_rect> clipRect,
+                             const til::coord destinationOrigin,
                              const bool standardFillAttrs) noexcept override;
 
     bool PrivateIsVtInputEnabled() const override;

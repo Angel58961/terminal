@@ -36,10 +36,10 @@ namespace Microsoft::Console::Types
         virtual const bool IsSelectionActive() const = 0;
         virtual const bool IsBlockSelection() const = 0;
         virtual void ClearSelection() = 0;
-        virtual void SelectNewRegion(const COORD coordStart, const COORD coordEnd) = 0;
-        virtual const COORD GetSelectionAnchor() const noexcept = 0;
-        virtual const COORD GetSelectionEnd() const noexcept = 0;
-        virtual void ColorSelection(const COORD coordSelectionStart, const COORD coordSelectionEnd, const TextAttribute attr) = 0;
+        virtual void SelectNewRegion(const til::coord coordStart, const til::coord coordEnd) = 0;
+        virtual const til::coord GetSelectionAnchor() const noexcept = 0;
+        virtual const til::coord GetSelectionEnd() const noexcept = 0;
+        virtual void ColorSelection(const til::coord coordSelectionStart, const til::coord coordSelectionEnd, const TextAttribute attr) = 0;
         virtual const bool IsUiaDataInitialized() const noexcept = 0;
     };
 

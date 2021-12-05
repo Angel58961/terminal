@@ -89,7 +89,7 @@ IFACEMETHODIMP TermControlUiaProvider::get_FragmentRoot(_COM_Outptr_result_maybe
     return S_OK;
 }
 
-const COORD TermControlUiaProvider::GetFontSize() const noexcept
+const til::coord TermControlUiaProvider::GetFontSize() const noexcept
 {
     return _controlInfo->GetFontSize();
 }
@@ -104,7 +104,7 @@ const double TermControlUiaProvider::GetScaleFactor() const noexcept
     return _controlInfo->GetScaleFactor();
 }
 
-void TermControlUiaProvider::ChangeViewport(const SMALL_RECT NewWindow)
+void TermControlUiaProvider::ChangeViewport(const til::small_rect NewWindow)
 {
     _controlInfo->ChangeViewport(NewWindow);
 }
@@ -150,8 +150,8 @@ HRESULT TermControlUiaProvider::CreateTextRange(_In_ IRawElementProviderSimple* 
 }
 
 HRESULT TermControlUiaProvider::CreateTextRange(_In_ IRawElementProviderSimple* const pProvider,
-                                                const COORD start,
-                                                const COORD end,
+                                                const til::coord start,
+                                                const til::coord end,
                                                 const std::wstring_view wordDelimiters,
                                                 _COM_Outptr_result_maybenull_ UiaTextRangeBase** ppUtr)
 {

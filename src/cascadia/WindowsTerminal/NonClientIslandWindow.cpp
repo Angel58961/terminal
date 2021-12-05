@@ -446,10 +446,10 @@ RECT NonClientIslandWindow::_GetDragAreaRect() const noexcept
         };
         const auto clientDragBarRect = transform.TransformBounds(logicalDragBarRect);
         RECT dragBarRect = {
-            static_cast<LONG>(clientDragBarRect.X * scale),
-            static_cast<LONG>(clientDragBarRect.Y * scale),
-            static_cast<LONG>((clientDragBarRect.Width + clientDragBarRect.X) * scale),
-            static_cast<LONG>((clientDragBarRect.Height + clientDragBarRect.Y) * scale),
+            static_cast<LONG>(clientDragBarRect.x * scale),
+            static_cast<LONG>(clientDragBarRect.y * scale),
+            static_cast<LONG>((clientDragBarRect.Width + clientDragBarRect.x) * scale),
+            static_cast<LONG>((clientDragBarRect.Height + clientDragBarRect.y) * scale),
         };
         return dragBarRect;
     }
@@ -539,14 +539,14 @@ void NonClientIslandWindow::_UpdateIslandPosition(const UINT windowWidth, const 
     // buttons, which will make them clickable. It's perhaps not the right fix,
     // but it works.
     // _GetTopBorderHeight() returns 0 when we're maximized.
-    const short topBorderHeight = ::base::saturated_cast<short>((originalTopHeight == 0) ? -1 : originalTopHeight);
+    const auto topBorderHeight = ::base::saturated_cast<short>((originalTopHeight == 0) ? -1 : originalTopHeight);
 
-    const COORD newIslandPos = { 0, topBorderHeight };
+    const til::coord newIslandPos{ 0, topBorderHeight };
 
     winrt::check_bool(SetWindowPos(_interopWindowHandle,
                                    HWND_BOTTOM,
-                                   newIslandPos.X,
-                                   newIslandPos.Y,
+                                   newIslandPos.x,
+                                   newIslandPos.y,
                                    windowWidth,
                                    windowHeight - topBorderHeight,
                                    SWP_SHOWWINDOW | SWP_NOACTIVATE));

@@ -25,7 +25,7 @@ extern ULONG g_currentFontIndex;
 extern ULONG DefaultFontIndex;
 extern WCHAR DefaultFaceName[LF_FACESIZE];
 extern WCHAR DefaultTTFaceName[LF_FACESIZE];
-extern COORD DefaultFontSize;
+extern til::coord DefaultFontSize;
 extern BYTE DefaultFontFamily;
 extern const wchar_t g_szPreviewText[];
 

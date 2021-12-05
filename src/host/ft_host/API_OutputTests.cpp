@@ -71,10 +71,10 @@ void OutputTests::BasicWriteConsoleOutputWTest()
     const auto bufferSize = sbiex.dwSize;
 
     // Establish a writing region that is the width of the buffer and half the height.
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Make a test value and fill an array (via a vector) full of it.
     CHAR_INFO testValue;
@@ -84,7 +84,7 @@ void OutputTests::BasicWriteConsoleOutputWTest()
     std::vector<CHAR_INFO> buffer(regionSize, testValue);
 
     // Call the API and confirm results.
-    SMALL_RECT affected = region;
+    auto affected = region;
     VERIFY_WIN32_BOOL_SUCCEEDED(WriteConsoleOutputW(consoleOutputHandle, buffer.data(), regionDimensions, regionOrigin, &affected));
     VERIFY_ARE_EQUAL(region, affected);
 }
@@ -102,10 +102,10 @@ void OutputTests::BasicWriteConsoleOutputATest()
     const auto bufferSize = sbiex.dwSize;
 
     // Establish a writing region that is the width of the buffer and half the height.
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Make a test value and fill an array (via a vector) full of it.
     CHAR_INFO testValue;
@@ -115,7 +115,7 @@ void OutputTests::BasicWriteConsoleOutputATest()
     std::vector<CHAR_INFO> buffer(regionSize, testValue);
 
     // Call the API and confirm results.
-    SMALL_RECT affected = region;
+    auto affected = region;
     VERIFY_WIN32_BOOL_SUCCEEDED(WriteConsoleOutputA(consoleOutputHandle, buffer.data(), regionDimensions, regionOrigin, &affected));
     VERIFY_ARE_EQUAL(region, affected);
 }
@@ -131,9 +131,9 @@ void OutputTests::WriteConsoleOutputWOutsideBuffer()
     // On Desktop systems, make it smaller so the test runs faster.
     if (OneCoreDelay::IsIsWindowPresent())
     {
-        SMALL_RECT window = { 0 };
-        window.Right = 5;
-        window.Bottom = 5;
+        til::small_rect window;
+        window.right = 5;
+        window.bottom = 5;
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleWindowInfo(consoleOutputHandle, true, &window));
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferSize(consoleOutputHandle, { 20, 20 }));
     }
@@ -144,10 +144,10 @@ void OutputTests::WriteConsoleOutputWOutsideBuffer()
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
 
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Make a test value and fill an array (via a vector) full of it.
     CHAR_INFO testValue;
@@ -160,29 +160,29 @@ void OutputTests::WriteConsoleOutputWOutsideBuffer()
 
     //  move outside in X and Y directions
     auto shiftedRegion = region;
-    shiftedRegion.Left += bufferSize.X;
-    shiftedRegion.Right += bufferSize.X;
-    shiftedRegion.Top += bufferSize.Y;
-    shiftedRegion.Bottom += bufferSize.Y;
+    shiftedRegion.left += bufferSize.x;
+    shiftedRegion.right += bufferSize.x;
+    shiftedRegion.top += bufferSize.y;
+    shiftedRegion.bottom += bufferSize.y;
 
     auto affected = shiftedRegion;
     VERIFY_WIN32_BOOL_SUCCEEDED(WriteConsoleOutputW(consoleOutputHandle, buffer.data(), regionDimensions, regionOrigin, &affected));
     VERIFY_ARE_EQUAL(shiftedRegion, affected);
 
     // Read the entire buffer back and validate that we didn't write anything anywhere
-    const auto readBack = std::make_unique<CHAR_INFO[]>(sbiex.dwSize.X * sbiex.dwSize.Y);
-    SMALL_RECT readRegion = { 0 };
-    readRegion.Bottom = sbiex.dwSize.Y - 1;
-    readRegion.Right = sbiex.dwSize.X - 1;
+    const auto readBack = std::make_unique<CHAR_INFO[]>(sbiex.dwSize.x * sbiex.dwSize.y);
+    til::small_rect readRegion;
+    readRegion.bottom = sbiex.dwSize.y - 1;
+    readRegion.right = sbiex.dwSize.x - 1;
     const auto readBefore = readRegion;
     VERIFY_WIN32_BOOL_SUCCEEDED(ReadConsoleOutputW(consoleOutputHandle, readBack.get(), sbiex.dwSize, { 0, 0 }, &readRegion));
     VERIFY_ARE_EQUAL(readBefore, readRegion);
 
-    for (auto row = 0; row < sbiex.dwSize.Y; row++)
+    for (auto row = 0; row < sbiex.dwSize.y; row++)
     {
-        for (auto col = 0; col < sbiex.dwSize.X; col++)
+        for (auto col = 0; col < sbiex.dwSize.x; col++)
         {
-            CHAR_INFO readItem = *(readBack.get() + (row * sbiex.dwSize.X) + col);
+            CHAR_INFO readItem = *(readBack.get() + (row * sbiex.dwSize.x) + col);
 
             CHAR_INFO expectedItem;
             expectedItem.Char.UnicodeChar = L' ';
@@ -204,9 +204,9 @@ void OutputTests::WriteConsoleOutputWWithClipping()
     // On Desktop systems, make it smaller so the test runs faster.
     if (OneCoreDelay::IsIsWindowPresent())
     {
-        SMALL_RECT window = { 0 };
-        window.Right = 5;
-        window.Bottom = 5;
+        til::small_rect window;
+        window.right = 5;
+        window.bottom = 5;
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleWindowInfo(consoleOutputHandle, true, &window));
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferSize(consoleOutputHandle, { 20, 20 }));
     }
@@ -217,10 +217,10 @@ void OutputTests::WriteConsoleOutputWWithClipping()
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
 
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Make a test value and fill an array (via a vector) full of it.
     CHAR_INFO testValue;
@@ -231,16 +231,16 @@ void OutputTests::WriteConsoleOutputWWithClipping()
 
     // Move the write region to get clipped in the X and the Y dimension.
     auto adjustedRegion = region;
-    adjustedRegion.Left += 5;
-    adjustedRegion.Right += 5;
-    adjustedRegion.Top += bufferSize.Y / 2;
-    adjustedRegion.Bottom += bufferSize.Y / 2;
+    adjustedRegion.left += 5;
+    adjustedRegion.right += 5;
+    adjustedRegion.top += bufferSize.y / 2;
+    adjustedRegion.bottom += bufferSize.y / 2;
 
     auto expectedRegion = adjustedRegion;
-    expectedRegion.Left = std::max<SHORT>(0, adjustedRegion.Left);
-    expectedRegion.Top = std::max<SHORT>(0, adjustedRegion.Top);
-    expectedRegion.Right = std::min<SHORT>(bufferSize.X - 1, adjustedRegion.Right);
-    expectedRegion.Bottom = std::min<SHORT>(bufferSize.Y - 1, adjustedRegion.Bottom);
+    expectedRegion.left = std::max<SHORT>(0, adjustedRegion.left);
+    expectedRegion.top = std::max<SHORT>(0, adjustedRegion.top);
+    expectedRegion.right = std::min<SHORT>(bufferSize.x - 1, adjustedRegion.right);
+    expectedRegion.bottom = std::min<SHORT>(bufferSize.y - 1, adjustedRegion.bottom);
 
     // Call the API and confirm results.
     auto affected = adjustedRegion;
@@ -248,22 +248,22 @@ void OutputTests::WriteConsoleOutputWWithClipping()
     VERIFY_ARE_EQUAL(expectedRegion, affected);
 
     // Read the entire buffer back and validate that we only wrote where we expected to write
-    const auto readBack = std::make_unique<CHAR_INFO[]>(sbiex.dwSize.X * sbiex.dwSize.Y);
-    SMALL_RECT readRegion = { 0 };
-    readRegion.Bottom = sbiex.dwSize.Y - 1;
-    readRegion.Right = sbiex.dwSize.X - 1;
+    const auto readBack = std::make_unique<CHAR_INFO[]>(sbiex.dwSize.x * sbiex.dwSize.y);
+    til::small_rect readRegion;
+    readRegion.bottom = sbiex.dwSize.y - 1;
+    readRegion.right = sbiex.dwSize.x - 1;
     const auto readBefore = readRegion;
     VERIFY_WIN32_BOOL_SUCCEEDED(ReadConsoleOutputW(consoleOutputHandle, readBack.get(), sbiex.dwSize, { 0, 0 }, &readRegion));
     VERIFY_ARE_EQUAL(readBefore, readRegion);
 
-    for (auto row = 0; row < sbiex.dwSize.Y; row++)
+    for (auto row = 0; row < sbiex.dwSize.y; row++)
     {
-        for (auto col = 0; col < sbiex.dwSize.X; col++)
+        for (auto col = 0; col < sbiex.dwSize.x; col++)
         {
-            CHAR_INFO readItem = *(readBack.get() + (row * sbiex.dwSize.X) + col);
+            CHAR_INFO readItem = *(readBack.get() + (row * sbiex.dwSize.x) + col);
 
             CHAR_INFO expectedItem;
-            if (affected.Top <= row && affected.Bottom >= row && affected.Left <= col && affected.Right >= col)
+            if (affected.top <= row && affected.bottom >= row && affected.left <= col && affected.right >= col)
             {
                 expectedItem = testValue;
             }
@@ -289,9 +289,9 @@ void OutputTests::WriteConsoleOutputWNegativePositions()
     // On Desktop systems, make it smaller so the test runs faster.
     if (OneCoreDelay::IsIsWindowPresent())
     {
-        SMALL_RECT window = { 0 };
-        window.Right = 5;
-        window.Bottom = 5;
+        til::small_rect window;
+        window.right = 5;
+        window.bottom = 5;
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleWindowInfo(consoleOutputHandle, true, &window));
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferSize(consoleOutputHandle, { 20, 20 }));
     }
@@ -302,10 +302,10 @@ void OutputTests::WriteConsoleOutputWNegativePositions()
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
 
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Make a test value and fill an array (via a vector) full of it.
     CHAR_INFO testValue;
@@ -318,16 +318,16 @@ void OutputTests::WriteConsoleOutputWNegativePositions()
 
     // Move the write region to negative values in the X and Y dimension
     auto adjustedRegion = region;
-    adjustedRegion.Left -= 3;
-    adjustedRegion.Right -= 3;
-    adjustedRegion.Top -= 10;
-    adjustedRegion.Bottom -= 10;
+    adjustedRegion.left -= 3;
+    adjustedRegion.right -= 3;
+    adjustedRegion.top -= 10;
+    adjustedRegion.bottom -= 10;
 
     auto expectedRegion = adjustedRegion;
-    expectedRegion.Left = std::max<SHORT>(0, adjustedRegion.Left);
-    expectedRegion.Top = std::max<SHORT>(0, adjustedRegion.Top);
-    expectedRegion.Right = std::min<SHORT>(bufferSize.X - 1, adjustedRegion.Right);
-    expectedRegion.Bottom = std::min<SHORT>(bufferSize.Y - 1, adjustedRegion.Bottom);
+    expectedRegion.left = std::max<SHORT>(0, adjustedRegion.left);
+    expectedRegion.top = std::max<SHORT>(0, adjustedRegion.top);
+    expectedRegion.right = std::min<SHORT>(bufferSize.x - 1, adjustedRegion.right);
+    expectedRegion.bottom = std::min<SHORT>(bufferSize.y - 1, adjustedRegion.bottom);
 
     // Call the API and confirm results.
     auto affected = adjustedRegion;
@@ -335,22 +335,22 @@ void OutputTests::WriteConsoleOutputWNegativePositions()
     VERIFY_ARE_EQUAL(expectedRegion, affected);
 
     // Read the entire buffer back and validate that we only wrote where we expected to write
-    const auto readBack = std::make_unique<CHAR_INFO[]>(sbiex.dwSize.X * sbiex.dwSize.Y);
-    SMALL_RECT readRegion = { 0 };
-    readRegion.Bottom = sbiex.dwSize.Y - 1;
-    readRegion.Right = sbiex.dwSize.X - 1;
+    const auto readBack = std::make_unique<CHAR_INFO[]>(sbiex.dwSize.x * sbiex.dwSize.y);
+    til::small_rect readRegion;
+    readRegion.bottom = sbiex.dwSize.y - 1;
+    readRegion.right = sbiex.dwSize.x - 1;
     const auto readBefore = readRegion;
     VERIFY_WIN32_BOOL_SUCCEEDED(ReadConsoleOutputW(consoleOutputHandle, readBack.get(), sbiex.dwSize, { 0, 0 }, &readRegion));
     VERIFY_ARE_EQUAL(readBefore, readRegion);
 
-    for (auto row = 0; row < sbiex.dwSize.Y; row++)
+    for (auto row = 0; row < sbiex.dwSize.y; row++)
     {
-        for (auto col = 0; col < sbiex.dwSize.X; col++)
+        for (auto col = 0; col < sbiex.dwSize.x; col++)
         {
-            CHAR_INFO readItem = *(readBack.get() + (row * sbiex.dwSize.X) + col);
+            CHAR_INFO readItem = *(readBack.get() + (row * sbiex.dwSize.x) + col);
 
             CHAR_INFO expectedItem;
-            if (affected.Top <= row && affected.Bottom >= row && affected.Left <= col && affected.Right >= col)
+            if (affected.top <= row && affected.bottom >= row && affected.left <= col && affected.right >= col)
             {
                 expectedItem = testValue;
             }
@@ -366,7 +366,7 @@ void OutputTests::WriteConsoleOutputWNegativePositions()
 
     // Set the region so the left will end up past the right
     adjustedRegion = region;
-    adjustedRegion.Left = -(adjustedRegion.Right + 1);
+    adjustedRegion.left = -(adjustedRegion.right + 1);
     affected = adjustedRegion;
     VERIFY_WIN32_BOOL_FAILED(WriteConsoleOutputW(consoleOutputHandle, buffer.data(), regionDimensions, regionOrigin, &affected));
 }
@@ -383,7 +383,7 @@ void OutputTests::WriteConsoleOutputCharacterWRunoff()
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
 
-    COORD target{ bufferSize.X - 1, bufferSize.Y - 1 };
+    til::coord target{ bufferSize.x - 1, bufferSize.y - 1 };
 
     const std::wstring text = L"hello";
     DWORD charsWritten = 0;
@@ -403,7 +403,7 @@ void OutputTests::WriteConsoleOutputAttributeSimpleTest()
 
     const DWORD size = 500;
     const WORD setAttr = FOREGROUND_BLUE | BACKGROUND_RED;
-    const COORD coord{ 0, 0 };
+    const til::coord coord{ 0, 0 };
     DWORD attrsWritten = 0;
     WORD attributes[size];
     std::fill_n(attributes, size, setAttr);
@@ -443,7 +443,7 @@ void OutputTests::WriteConsoleOutputAttributeCheckerTest()
     const WORD green = BACKGROUND_GREEN;
 
     const DWORD height = 8;
-    const DWORD width = bufferSize.X;
+    const DWORD width = bufferSize.x;
     // todo verify less than or equal to buffer size ^^^
     const DWORD size = width * height;
     std::unique_ptr<WORD[]> attrs = std::make_unique<WORD[]>(size);
@@ -454,7 +454,7 @@ void OutputTests::WriteConsoleOutputAttributeCheckerTest()
     });
 
     // write text
-    const COORD coord{ 0, 0 };
+    const til::coord coord{ 0, 0 };
     DWORD charsWritten = 0;
     std::unique_ptr<wchar_t[]> wchs = std::make_unique<wchar_t[]>(size);
     std::fill_n(wchs.get(), size, L'*');
@@ -495,39 +495,39 @@ void OutputTests::WriteBackspaceTest()
 
     DWORD n = 0;
     CONSOLE_SCREEN_BUFFER_INFO csbi = { 0 };
-    COORD c = { 0, 0 };
+    til::coord c;
     VERIFY_SUCCEEDED(SetConsoleCursorPosition(hOut, c));
     VERIFY_SUCCEEDED(WriteConsoleW(hOut, L"GoodX", 5, &n, nullptr));
 
     VERIFY_SUCCEEDED(GetConsoleScreenBufferInfo(hOut, &csbi));
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.X, 5);
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.Y, 0);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.x, 5);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.y, 0);
 
     VERIFY_SUCCEEDED(WriteConsoleW(hOut, L"\b", 1, &n, nullptr));
     VERIFY_SUCCEEDED(WriteConsoleW(hOut, L" ", 1, &n, nullptr));
     VERIFY_SUCCEEDED(WriteConsoleW(hOut, L"\b", 1, &n, nullptr));
 
     VERIFY_SUCCEEDED(GetConsoleScreenBufferInfo(hOut, &csbi));
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.X, 4);
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.Y, 0);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.x, 4);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.y, 0);
 
     VERIFY_SUCCEEDED(WriteConsoleW(hOut, L"\n", 1, &n, nullptr));
 
     VERIFY_SUCCEEDED(GetConsoleScreenBufferInfo(hOut, &csbi));
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.X, 0);
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.Y, 1);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.x, 0);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.y, 1);
 
     VERIFY_SUCCEEDED(WriteConsoleW(hOut, L"badX", 4, &n, nullptr));
 
     VERIFY_SUCCEEDED(GetConsoleScreenBufferInfo(hOut, &csbi));
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.X, 4);
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.Y, 1);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.x, 4);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.y, 1);
 
     VERIFY_SUCCEEDED(WriteConsoleW(hOut, L"\b \b", 3, &n, nullptr));
 
     VERIFY_SUCCEEDED(GetConsoleScreenBufferInfo(hOut, &csbi));
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.X, 3);
-    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.Y, 1);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.x, 3);
+    VERIFY_ARE_EQUAL(csbi.dwCursorPosition.y, 1);
 }
 
 void OutputTests::BasicReadConsoleOutputATest()
@@ -544,13 +544,13 @@ void OutputTests::BasicReadConsoleOutputATest()
     // Get buffer information
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
-    const auto bufferLength = bufferSize.X * bufferSize.Y;
+    const auto bufferLength = bufferSize.x * bufferSize.y;
 
     // Establish a reading region that is the width of the buffer and half the height.
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Fill buffer with some data to read back.
     CHAR_INFO ciFill = { 0 };
@@ -568,7 +568,7 @@ void OutputTests::BasicReadConsoleOutputATest()
     std::vector<CHAR_INFO> buffer(regionSize);
 
     // Call the API and confirm results
-    SMALL_RECT affected = region;
+    auto affected = region;
     VERIFY_WIN32_BOOL_SUCCEEDED(ReadConsoleOutputA(consoleOutputHandle, buffer.data(), regionDimensions, regionOrigin, &affected));
     VERIFY_ARE_EQUAL(region, affected);
 
@@ -593,13 +593,13 @@ void OutputTests::BasicReadConsoleOutputWTest()
     // Get buffer information
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
-    const auto bufferLength = bufferSize.X * bufferSize.Y;
+    const auto bufferLength = bufferSize.x * bufferSize.y;
 
     // Establish a reading region that is the width of the buffer and half the height.
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Fill buffer with some data to read back.
     CHAR_INFO ciFill = { 0 };
@@ -617,7 +617,7 @@ void OutputTests::BasicReadConsoleOutputWTest()
     std::vector<CHAR_INFO> buffer(regionSize);
 
     // Call the API and confirm results
-    SMALL_RECT affected = region;
+    auto affected = region;
     VERIFY_WIN32_BOOL_SUCCEEDED(ReadConsoleOutputW(consoleOutputHandle, buffer.data(), regionDimensions, regionOrigin, &affected));
     VERIFY_ARE_EQUAL(region, affected);
 
@@ -640,9 +640,9 @@ void OutputTests::ReadConsoleOutputWOutsideBuffer()
     // On Desktop systems, make it smaller so the test runs faster.
     if (OneCoreDelay::IsIsWindowPresent())
     {
-        SMALL_RECT window = { 0 };
-        window.Right = 5;
-        window.Bottom = 5;
+        til::small_rect window;
+        window.right = 5;
+        window.bottom = 5;
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleWindowInfo(consoleOutputHandle, true, &window));
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferSize(consoleOutputHandle, { 20, 20 }));
     }
@@ -653,13 +653,13 @@ void OutputTests::ReadConsoleOutputWOutsideBuffer()
     // Get buffer information
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
-    const auto bufferLength = bufferSize.X * bufferSize.Y;
+    const auto bufferLength = bufferSize.x * bufferSize.y;
 
     // Establish a reading region that is the width of the buffer and half the height.
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Fill buffer with some data to read back.
     CHAR_INFO ciFill = { 0 };
@@ -679,14 +679,14 @@ void OutputTests::ReadConsoleOutputWOutsideBuffer()
 
     // Try to read completely outside the buffer.
     auto shiftedRegion = region;
-    shiftedRegion.Left += bufferSize.X;
-    shiftedRegion.Right += bufferSize.X;
-    shiftedRegion.Top += bufferSize.Y;
-    shiftedRegion.Bottom += bufferSize.Y;
+    shiftedRegion.left += bufferSize.x;
+    shiftedRegion.right += bufferSize.x;
+    shiftedRegion.top += bufferSize.y;
+    shiftedRegion.bottom += bufferSize.y;
 
     auto expectedRegion = shiftedRegion;
-    expectedRegion.Right = expectedRegion.Left - 1;
-    expectedRegion.Bottom = expectedRegion.Top - 1;
+    expectedRegion.right = expectedRegion.left - 1;
+    expectedRegion.bottom = expectedRegion.top - 1;
 
     auto affected = shiftedRegion;
     VERIFY_WIN32_BOOL_FAILED(ReadConsoleOutputW(consoleOutputHandle, buffer.data(), regionDimensions, regionOrigin, &affected));
@@ -711,9 +711,9 @@ void OutputTests::ReadConsoleOutputWWithClipping()
     // On Desktop systems, make it smaller so the test runs faster.
     if (OneCoreDelay::IsIsWindowPresent())
     {
-        SMALL_RECT window = { 0 };
-        window.Right = 5;
-        window.Bottom = 5;
+        til::small_rect window;
+        window.right = 5;
+        window.bottom = 5;
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleWindowInfo(consoleOutputHandle, true, &window));
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferSize(consoleOutputHandle, { 20, 20 }));
     }
@@ -724,13 +724,13 @@ void OutputTests::ReadConsoleOutputWWithClipping()
     // Get buffer information
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
-    const auto bufferLength = bufferSize.X * bufferSize.Y;
+    const auto bufferLength = bufferSize.x * bufferSize.y;
 
     // Establish a reading region that is the width of the buffer and half the height.
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Fill buffer with some data to read back.
     CHAR_INFO ciFill = { 0 };
@@ -752,16 +752,16 @@ void OutputTests::ReadConsoleOutputWWithClipping()
 
     // Move the write region to get clipped in the X and the Y dimension.
     auto adjustedRegion = region;
-    adjustedRegion.Left += 5;
-    adjustedRegion.Right += 5;
-    adjustedRegion.Top += bufferSize.Y / 2;
-    adjustedRegion.Bottom += bufferSize.Y / 2;
+    adjustedRegion.left += 5;
+    adjustedRegion.right += 5;
+    adjustedRegion.top += bufferSize.y / 2;
+    adjustedRegion.bottom += bufferSize.y / 2;
 
     auto expectedRegion = adjustedRegion;
-    expectedRegion.Left = std::max<SHORT>(0, adjustedRegion.Left);
-    expectedRegion.Top = std::max<SHORT>(0, adjustedRegion.Top);
-    expectedRegion.Right = std::min<SHORT>(bufferSize.X - 1, adjustedRegion.Right);
-    expectedRegion.Bottom = std::min<SHORT>(bufferSize.Y - 1, adjustedRegion.Bottom);
+    expectedRegion.left = std::max<SHORT>(0, adjustedRegion.left);
+    expectedRegion.top = std::max<SHORT>(0, adjustedRegion.top);
+    expectedRegion.right = std::min<SHORT>(bufferSize.x - 1, adjustedRegion.right);
+    expectedRegion.bottom = std::min<SHORT>(bufferSize.y - 1, adjustedRegion.bottom);
 
     // Call the API and confirm results.
     // NOTE: We expect this to be broken for v1. It's always been wrong there (returning a clipped count of bytes instead of the whole rectangle).
@@ -772,11 +772,11 @@ void OutputTests::ReadConsoleOutputWWithClipping()
     const auto affectedViewport = Viewport::FromInclusive(affected);
     const auto filledBuffer = Viewport::FromDimensions({ 0, 0 }, affectedViewport.Dimensions());
 
-    for (SHORT row = 0; row < regionDimensions.Y; row++)
+    for (auto row = 0; row < regionDimensions.y; row++)
     {
-        for (SHORT col = 0; col < regionDimensions.X; col++)
+        for (auto col = 0; col < regionDimensions.x; col++)
         {
-            CHAR_INFO bufferItem = *(buffer.begin() + (row * regionDimensions.X) + col);
+            CHAR_INFO bufferItem = *(buffer.begin() + (row * regionDimensions.x) + col);
 
             CHAR_INFO expectedItem;
             if (filledBuffer.IsInBounds({ col, row }))
@@ -805,9 +805,9 @@ void OutputTests::ReadConsoleOutputWNegativePositions()
     // On Desktop systems, make it smaller so the test runs faster.
     if (OneCoreDelay::IsIsWindowPresent())
     {
-        SMALL_RECT window = { 0 };
-        window.Right = 5;
-        window.Bottom = 5;
+        til::small_rect window;
+        window.right = 5;
+        window.bottom = 5;
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleWindowInfo(consoleOutputHandle, true, &window));
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferSize(consoleOutputHandle, { 20, 20 }));
     }
@@ -818,13 +818,13 @@ void OutputTests::ReadConsoleOutputWNegativePositions()
     // Get buffer information
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
-    const auto bufferLength = bufferSize.X * bufferSize.Y;
+    const auto bufferLength = bufferSize.x * bufferSize.y;
 
     // Establish a reading region that is the width of the buffer and half the height.
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
-    const COORD regionOrigin{ 0, 0 };
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
+    const til::coord regionOrigin{ 0, 0 };
 
     // Fill buffer with some data to read back.
     CHAR_INFO ciFill = { 0 };
@@ -846,16 +846,16 @@ void OutputTests::ReadConsoleOutputWNegativePositions()
 
     // Move the read region to negative values in the X and Y dimension
     auto adjustedRegion = region;
-    adjustedRegion.Left -= 3;
-    adjustedRegion.Right -= 3;
-    adjustedRegion.Top -= 10;
-    adjustedRegion.Bottom -= 10;
+    adjustedRegion.left -= 3;
+    adjustedRegion.right -= 3;
+    adjustedRegion.top -= 10;
+    adjustedRegion.bottom -= 10;
 
     auto expectedRegion = adjustedRegion;
-    expectedRegion.Left = std::max<SHORT>(0, adjustedRegion.Left);
-    expectedRegion.Top = std::max<SHORT>(0, adjustedRegion.Top);
-    expectedRegion.Right = std::min<SHORT>(bufferSize.X - 1, adjustedRegion.Right);
-    expectedRegion.Bottom = std::min<SHORT>(bufferSize.Y - 1, adjustedRegion.Bottom);
+    expectedRegion.left = std::max<SHORT>(0, adjustedRegion.left);
+    expectedRegion.top = std::max<SHORT>(0, adjustedRegion.top);
+    expectedRegion.right = std::min<SHORT>(bufferSize.x - 1, adjustedRegion.right);
+    expectedRegion.bottom = std::min<SHORT>(bufferSize.y - 1, adjustedRegion.bottom);
 
     // Call the API
     // NOTE: Due to the same reason as the ReadConsoleOutputWWithClipping test (the v1 buffer told the driver the wrong return buffer byte length)
@@ -871,13 +871,13 @@ void OutputTests::ReadConsoleOutputWNegativePositions()
     // the original buffer's origin was at -3, -10. This means we have to read at that offset into the buffer we provided
     // for the data we requested.
     const auto filledBuffer = Viewport::FromDimensions({ 0, 0 }, affectedViewport.Dimensions());
-    auto adjustedBuffer = Viewport::Offset(filledBuffer, { -adjustedRegion.Left, -adjustedRegion.Top });
+    auto adjustedBuffer = Viewport::Offset(filledBuffer, { -adjustedRegion.left, -adjustedRegion.top });
 
-    for (SHORT row = 0; row < regionDimensions.Y; row++)
+    for (auto row = 0; row < regionDimensions.y; row++)
     {
-        for (SHORT col = 0; col < regionDimensions.X; col++)
+        for (auto col = 0; col < regionDimensions.x; col++)
         {
-            CHAR_INFO bufferItem = *(buffer.begin() + (row * regionDimensions.X) + col);
+            CHAR_INFO bufferItem = *(buffer.begin() + (row * regionDimensions.x) + col);
 
             CHAR_INFO expectedItem;
             if (adjustedBuffer.IsInBounds({ col, row }))
@@ -906,9 +906,9 @@ void OutputTests::ReadConsoleOutputWPartialUserBuffer()
     // On Desktop systems, make it smaller so the test runs faster.
     if (OneCoreDelay::IsIsWindowPresent())
     {
-        SMALL_RECT window = { 0 };
-        window.Right = 5;
-        window.Bottom = 5;
+        til::small_rect window;
+        window.right = 5;
+        window.bottom = 5;
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleWindowInfo(consoleOutputHandle, true, &window));
         VERIFY_WIN32_BOOL_SUCCEEDED(SetConsoleScreenBufferSize(consoleOutputHandle, { 20, 20 }));
     }
@@ -919,12 +919,12 @@ void OutputTests::ReadConsoleOutputWPartialUserBuffer()
     // Get buffer information
     VERIFY_WIN32_BOOL_SUCCEEDED(GetConsoleScreenBufferInfoEx(consoleOutputHandle, &sbiex));
     const auto bufferSize = sbiex.dwSize;
-    const auto bufferLength = bufferSize.X * bufferSize.Y;
+    const auto bufferLength = bufferSize.x * bufferSize.y;
 
     // Establish a reading region that is the width of the buffer and half the height.
-    const SMALL_RECT region{ 0, 0, bufferSize.X - 1, bufferSize.Y / 2 };
-    const COORD regionDimensions{ region.Right - region.Left + 1, region.Bottom - region.Top + 1 };
-    const auto regionSize = regionDimensions.X * regionDimensions.Y;
+    const til::small_rect region{ 0, 0, bufferSize.x - 1, bufferSize.y / 2 };
+    const til::coord regionDimensions{ region.right - region.left + 1, region.bottom - region.top + 1 };
+    const auto regionSize = regionDimensions.x * regionDimensions.y;
 
     // Fill buffer with some data to read back.
     CHAR_INFO ciFill = { 0 };
@@ -946,34 +946,34 @@ void OutputTests::ReadConsoleOutputWPartialUserBuffer()
 
     // Only fill up a small portion of the region we allocated.
     // We're going to set the origin to the middle and say we only want to read into/out of the bottom right corner.
-    const COORD regionOrigin{ regionDimensions.X / 2, regionDimensions.Y / 2 };
+    const til::coord regionOrigin{ regionDimensions.x / 2, regionDimensions.y / 2 };
 
     // Create the area that we expect to be filled with data.
-    SMALL_RECT expected;
-    expected.Left = regionOrigin.X;
-    expected.Right = regionDimensions.X - 1;
-    expected.Top = regionOrigin.Y;
-    expected.Bottom = regionDimensions.Y - 1;
+    til::small_rect expected;
+    expected.left = regionOrigin.x;
+    expected.right = regionDimensions.x - 1;
+    expected.top = regionOrigin.y;
+    expected.bottom = regionDimensions.y - 1;
 
     const auto filledExpected = Viewport::FromInclusive(expected);
 
     // translate the expected region into the origin at 0,0 because that's what the API will report.
-    expected.Right -= expected.Left;
-    expected.Left -= expected.Left;
-    expected.Bottom -= expected.Top;
-    expected.Top -= expected.Top;
+    expected.right -= expected.left;
+    expected.left -= expected.left;
+    expected.bottom -= expected.top;
+    expected.top -= expected.top;
 
     // Call the API and confirm results
-    SMALL_RECT affected = region;
+    auto affected = region;
     VERIFY_WIN32_BOOL_SUCCEEDED(ReadConsoleOutputW(consoleOutputHandle, buffer.data(), regionDimensions, regionOrigin, &affected));
     VERIFY_ARE_EQUAL(expected, affected);
 
     // Verify that all the data read matches what was expected.
-    for (SHORT row = 0; row < regionDimensions.Y; row++)
+    for (auto row = 0; row < regionDimensions.y; row++)
     {
-        for (SHORT col = 0; col < regionDimensions.X; col++)
+        for (auto col = 0; col < regionDimensions.x; col++)
         {
-            CHAR_INFO bufferItem = *(buffer.begin() + (row * regionDimensions.X) + col);
+            CHAR_INFO bufferItem = *(buffer.begin() + (row * regionDimensions.x) + col);
 
             CHAR_INFO expectedItem;
             if (filledExpected.IsInBounds({ col, row }))

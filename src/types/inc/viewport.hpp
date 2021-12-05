@@ -12,7 +12,6 @@ Author(s):
 --*/
 
 #pragma once
-#include "../../inc/operators.hpp"
 
 namespace Microsoft::Console::Types
 {
@@ -23,56 +22,52 @@ namespace Microsoft::Console::Types
     class Viewport final
     {
     public:
-        ~Viewport() {}
-        constexpr Viewport() noexcept :
-            _sr({ 0, 0, -1, -1 }){};
-        Viewport(const Viewport& other) noexcept;
-        Viewport(Viewport&&) = default;
-        Viewport& operator=(const Viewport&) & = default;
-        Viewport& operator=(Viewport&&) & = default;
+        Viewport() = default;
 
         static Viewport Empty() noexcept;
 
         static Viewport FromInclusive(const SMALL_RECT sr) noexcept;
-
         static Viewport FromExclusive(const SMALL_RECT sr) noexcept;
 
-        static Viewport FromDimensions(const COORD origin,
-                                       const short width,
-                                       const short height) noexcept;
+        static Viewport FromInclusive(const til::small_rect sr) noexcept;
+        static Viewport FromExclusive(const til::small_rect sr) noexcept;
 
-        static Viewport FromDimensions(const COORD origin,
-                                       const COORD dimensions) noexcept;
+        static Viewport FromDimensions(const til::coord origin,
+                                       const til::CoordType width,
+                                       const til::CoordType height) noexcept;
 
-        static Viewport FromDimensions(const COORD dimensions) noexcept;
+        static Viewport FromDimensions(const til::coord origin,
+                                       const til::coord dimensions) noexcept;
 
-        static Viewport FromCoord(const COORD origin) noexcept;
+        static Viewport FromDimensions(const til::coord dimensions) noexcept;
 
-        SHORT Left() const noexcept;
-        SHORT RightInclusive() const noexcept;
-        SHORT RightExclusive() const noexcept;
-        SHORT Top() const noexcept;
-        SHORT BottomInclusive() const noexcept;
-        SHORT BottomExclusive() const noexcept;
-        SHORT Height() const noexcept;
-        SHORT Width() const noexcept;
-        COORD Origin() const noexcept;
-        COORD BottomRightExclusive() const noexcept;
-        COORD EndExclusive() const noexcept;
-        COORD Dimensions() const noexcept;
+        static Viewport FromCoord(const til::coord origin) noexcept;
+
+        til::CoordType Left() const noexcept;
+        til::CoordType RightInclusive() const noexcept;
+        til::CoordType RightExclusive() const noexcept;
+        til::CoordType Top() const noexcept;
+        til::CoordType BottomInclusive() const noexcept;
+        til::CoordType BottomExclusive() const noexcept;
+        til::CoordType Height() const noexcept;
+        til::CoordType Width() const noexcept;
+        til::coord Origin() const noexcept;
+        til::coord BottomRightExclusive() const noexcept;
+        til::coord EndExclusive() const noexcept;
+        til::coord Dimensions() const noexcept;
 
         bool IsInBounds(const Viewport& other) const noexcept;
-        bool IsInBounds(const COORD& pos, bool allowEndExclusive = false) const noexcept;
+        bool IsInBounds(const til::coord& pos, bool allowEndExclusive = false) const noexcept;
 
-        void Clamp(COORD& pos) const;
+        void Clamp(til::coord& pos) const;
         Viewport Clamp(const Viewport& other) const noexcept;
 
-        bool MoveInBounds(const ptrdiff_t move, COORD& pos) const noexcept;
-        bool IncrementInBounds(COORD& pos, bool allowEndExclusive = false) const noexcept;
-        bool IncrementInBoundsCircular(COORD& pos) const noexcept;
-        bool DecrementInBounds(COORD& pos, bool allowEndExclusive = false) const noexcept;
-        bool DecrementInBoundsCircular(COORD& pos) const noexcept;
-        int CompareInBounds(const COORD& first, const COORD& second, bool allowEndExclusive = false) const noexcept;
+        bool MoveInBounds(const ptrdiff_t move, til::coord& pos) const noexcept;
+        bool IncrementInBounds(til::coord& pos, bool allowEndExclusive = false) const noexcept;
+        bool IncrementInBoundsCircular(til::coord& pos) const noexcept;
+        bool DecrementInBounds(til::coord& pos, bool allowEndExclusive = false) const noexcept;
+        bool DecrementInBoundsCircular(til::coord& pos) const noexcept;
+        int CompareInBounds(const til::coord& first, const til::coord& second, bool allowEndExclusive = false) const noexcept;
 
         enum class XWalk
         {
@@ -92,28 +87,31 @@ namespace Microsoft::Console::Types
             const YWalk y;
         };
 
-        bool WalkInBounds(COORD& pos, const WalkDir dir, bool allowEndExclusive = false) const noexcept;
-        bool WalkInBoundsCircular(COORD& pos, const WalkDir dir, bool allowEndExclusive = false) const noexcept;
-        COORD GetWalkOrigin(const WalkDir dir) const noexcept;
+        bool WalkInBounds(til::coord& pos, const WalkDir dir, bool allowEndExclusive = false) const noexcept;
+        bool WalkInBoundsCircular(til::coord& pos, const WalkDir dir, bool allowEndExclusive = false) const noexcept;
+        til::coord GetWalkOrigin(const WalkDir dir) const noexcept;
         static WalkDir DetermineWalkDirection(const Viewport& source, const Viewport& target) noexcept;
 
+        bool TrimToViewport(_Inout_ til::small_rect* const psr) const noexcept;
         bool TrimToViewport(_Inout_ SMALL_RECT* const psr) const noexcept;
+        void ConvertToOrigin(_Inout_ til::small_rect* const psr) const noexcept;
         void ConvertToOrigin(_Inout_ SMALL_RECT* const psr) const noexcept;
-        void ConvertToOrigin(_Inout_ COORD* const pcoord) const noexcept;
-        [[nodiscard]] Viewport ConvertToOrigin(const Viewport& other) const noexcept;
+        void ConvertToOrigin(_Inout_ til::coord* const pcoord) const noexcept;
+        void ConvertFromOrigin(_Inout_ til::small_rect* const psr) const noexcept;
         void ConvertFromOrigin(_Inout_ SMALL_RECT* const psr) const noexcept;
-        void ConvertFromOrigin(_Inout_ COORD* const pcoord) const noexcept;
+        void ConvertFromOrigin(_Inout_ til::coord* const pcoord) const noexcept;
+        [[nodiscard]] Viewport ConvertToOrigin(const Viewport& other) const noexcept;
         [[nodiscard]] Viewport ConvertFromOrigin(const Viewport& other) const noexcept;
 
-        SMALL_RECT ToExclusive() const noexcept;
-        SMALL_RECT ToInclusive() const noexcept;
+        til::small_rect ToExclusive() const noexcept;
+        til::small_rect ToInclusive() const noexcept;
         RECT ToRect() const noexcept;
 
         Viewport ToOrigin() const noexcept;
 
         bool IsValid() const noexcept;
 
-        [[nodiscard]] static Viewport Offset(const Viewport& original, const COORD delta);
+        [[nodiscard]] static Viewport Offset(const Viewport& original, const til::coord delta);
 
         [[nodiscard]] static Viewport Union(const Viewport& lhs, const Viewport& rhs) noexcept;
 
@@ -122,10 +120,10 @@ namespace Microsoft::Console::Types
         [[nodiscard]] static SomeViewports Subtract(const Viewport& original, const Viewport& removeMe) noexcept;
 
     private:
-        Viewport(const SMALL_RECT sr) noexcept;
+        Viewport(const til::small_rect sr) noexcept;
 
         // This is always stored as a Inclusive rect.
-        SMALL_RECT _sr;
+        til::small_rect _sr;
 
 #if UNIT_TESTING
         friend class ViewportTests;
@@ -133,14 +131,14 @@ namespace Microsoft::Console::Types
     };
 }
 
-inline COORD operator-(const COORD& a, const COORD& b) noexcept
+inline til::coord operator-(const til::coord& a, const til::coord& b) noexcept
 {
-    return { a.X - b.X, a.Y - b.Y };
+    return { a.x - b.x, a.y - b.y };
 }
 
-inline COORD operator-(const COORD& c) noexcept
+inline til::coord operator-(const til::coord& c) noexcept
 {
-    return { -c.X, -c.Y };
+    return { -c.x, -c.y };
 }
 
 inline bool operator==(const Microsoft::Console::Types::Viewport& a,

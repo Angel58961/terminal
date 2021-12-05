@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "rectangle.h"
+
 #ifdef UNIT_TESTING
 class BitmapTests;
 #endif
@@ -15,11 +17,11 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         class _bitmap_const_iterator
         {
         public:
-            using iterator_category = typename std::input_iterator_tag;
-            using value_type = typename const til::rectangle;
-            using difference_type = typename ptrdiff_t;
-            using pointer = typename const til::rectangle*;
-            using reference = typename const til::rectangle&;
+            using iterator_category = std::input_iterator_tag;
+            using value_type = const til::rectangle;
+            using difference_type = ptrdiff_t;
+            using pointer = const til::rectangle*;
+            using reference = const til::rectangle&;
 
             _bitmap_const_iterator(const dynamic_bitset<unsigned long long, Allocator>& values, til::rectangle rc, ptrdiff_t pos) :
                 _values(values),
@@ -77,9 +79,9 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
         private:
             const dynamic_bitset<unsigned long long, Allocator>& _values;
             const til::rectangle _rc;
-            ptrdiff_t _pos;
-            ptrdiff_t _nextPos;
-            const ptrdiff_t _end;
+            size_t _pos;
+            size_t _nextPos;
+            const size_t _end;
             til::rectangle _run;
 
             // Update _run to contain the next rectangle of consecutively set bits within this bitmap.
@@ -92,23 +94,22 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
                 // dynamic_bitset allows you to quickly find the next set bit using find_next(prev),
                 // where "prev" is the position _past_ which should be searched (i.e. excluding position "prev").
                 // If _pos is still 0, we thus need to use the counterpart find_first().
-                const auto nextPos = _pos == 0 ? _values.find_first() : _values.find_next(_pos - 1);
-                // If no next set bit can be found, npos is returned, which is SIZE_T_MAX.
-                // saturated_cast can ensure that this will be converted to PTRDIFF_T_MAX (which is greater than _end).
-                _nextPos = base::saturated_cast<ptrdiff_t>(nextPos);
+                _nextPos = _pos == 0 ? _values.find_first() : _values.find_next(_pos - 1);
 
                 // If we haven't reached the end yet...
                 if (_nextPos < _end)
                 {
                     // pos is now at the first on bit.
-                    const auto runStart = _rc.point_at(_nextPos);
+                    // If no next set bit can be found, npos is returned, which is SIZE_T_MAX.
+                    // saturated_cast can ensure that this will be converted to CoordType's max (which is greater than _end).
+                    const auto runStart = _rc.point_at(base::saturated_cast<CoordType>(_nextPos));
 
                     // We'll only count up until the end of this row.
                     // a run can be a max of one row tall.
-                    const ptrdiff_t rowEndIndex = _rc.index_of(til::point(_rc.right() - 1, runStart.y())) + 1;
+                    const size_t rowEndIndex = _rc.index_of(til::point(_rc.right() - 1, runStart.y())) + 1;
 
                     // Find the length for the rectangle.
-                    ptrdiff_t runLength = 0;
+                    size_t runLength = 0;
 
                     // We have at least 1 so start with a do/while.
                     do
@@ -119,7 +120,7 @@ namespace til // Terminal Implementation Library. Also: "Today I Learned"
                     // Keep going until we reach end of row, end of the buffer, or the next bit is off.
 
                     // Assemble and store that run.
-                    _run = til::rectangle{ runStart, til::size{ runLength, static_cast<ptrdiff_t>(1) } };
+                    _run = til::rectangle{ runStart, til::size{ base::saturated_cast<CoordType>(runLength), 1 } };
                 }
                 else
                 {

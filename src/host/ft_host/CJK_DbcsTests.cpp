@@ -301,8 +301,8 @@ bool DbcsWriteRead::Setup(_In_ unsigned int uiCodePage,
         wcscpy_s(cfiex.FaceName, L"Terminal");
 
         // Use default raster font size from Japanese system.
-        cfiex.dwFontSize.X = 8;
-        cfiex.dwFontSize.Y = 18;
+        cfiex.dwFontSize.x = 8;
+        cfiex.dwFontSize.y = 18;
     }
     else
     {
@@ -316,7 +316,7 @@ bool DbcsWriteRead::Setup(_In_ unsigned int uiCodePage,
             break;
         }
 
-        cfiex.dwFontSize.Y = 16;
+        cfiex.dwFontSize.y = 16;
     }
 
     VERIFY_WIN32_BOOL_SUCCEEDED_RETURN(OneCoreDelay::SetCurrentConsoleFontEx(hOut, FALSE, &cfiex));
@@ -340,10 +340,10 @@ bool DbcsWriteRead::Setup(_In_ unsigned int uiCodePage,
     VERIFY_WIN32_BOOL_SUCCEEDED_RETURN(GetConsoleScreenBufferInfoEx(hOut, &sbiex));
 
     // ensure first line of console is cleared out with spaces so nothing interferes with the text these tests will be writing.
-    COORD coordZero = { 0 };
+    til::coord coordZero;
     DWORD dwWritten;
-    VERIFY_WIN32_BOOL_SUCCEEDED_RETURN(FillConsoleOutputCharacterW(hOut, L'\x20', sbiex.dwSize.X, coordZero, &dwWritten));
-    VERIFY_WIN32_BOOL_SUCCEEDED_RETURN(FillConsoleOutputAttribute(hOut, sbiex.wAttributes, sbiex.dwSize.X, coordZero, &dwWritten));
+    VERIFY_WIN32_BOOL_SUCCEEDED_RETURN(FillConsoleOutputCharacterW(hOut, L'\x20', sbiex.dwSize.x, coordZero, &dwWritten));
+    VERIFY_WIN32_BOOL_SUCCEEDED_RETURN(FillConsoleOutputAttribute(hOut, sbiex.wAttributes, sbiex.dwSize.x, coordZero, &dwWritten));
 
     // Move the cursor to the 0,0 position into our empty line so the tests can write (important for the CRT tests that specify no location)
     if (!SetConsoleCursorPosition(GetStdOutputHandle(), coordZero))
@@ -367,7 +367,7 @@ void DbcsWriteRead::SendOutput(const HANDLE hOut,
 {
     // DBCS is very dependent on knowing the byte length in the original codepage of the input text.
     // Save off the original length of the string so we know what its A length was.
-    SHORT const cTestString = (SHORT)strlen(pszTestString);
+    const auto cTestString = (SHORT)strlen(pszTestString);
 
     // If we're in Unicode mode, we will need to translate the test string to Unicode before passing into the console
     PWSTR pwszTestString = nullptr;
@@ -384,7 +384,7 @@ void DbcsWriteRead::SendOutput(const HANDLE hOut,
     }
 
     // Calculate the number of cells/characters/calls we will need to fill with our input depending on the mode.
-    SHORT cChars = 0;
+    auto cChars = 0;
     if (fIsUnicode)
     {
         cChars = (SHORT)wcslen(pwszTestString);
@@ -398,8 +398,8 @@ void DbcsWriteRead::SendOutput(const HANDLE hOut,
     // This information will be stored and printed out at the very end after we move the cursor off of the text we just printed.
     // The cursor auto-moves for CRT, but we have to manually move it for some of the Console APIs.
     bool fUseRectWritten = false;
-    SMALL_RECT srWrittenExpected = { 0 };
-    SMALL_RECT srWritten = { 0 };
+    til::small_rect srWrittenExpected;
+    til::small_rect srWritten;
 
     bool fUseDwordWritten = false;
     DWORD dwWritten = 0;
@@ -423,14 +423,14 @@ void DbcsWriteRead::SendOutput(const HANDLE hOut,
         // Write each character in the string individually out through the CRT
         if (fIsUnicode)
         {
-            for (SHORT i = 0; i < cChars; i++)
+            for (auto i = 0; i < cChars; i++)
             {
                 putwchar(pwszTestString[i]);
             }
         }
         else
         {
-            for (SHORT i = 0; i < cChars; i++)
+            for (auto i = 0; i < cChars; i++)
             {
                 putchar(pszTestString[i]);
             }
@@ -444,7 +444,7 @@ void DbcsWriteRead::SendOutput(const HANDLE hOut,
         CHAR_INFO* rgChars = new CHAR_INFO[cChars];
         VERIFY_IS_NOT_NULL(rgChars);
 
-        for (SHORT i = 0; i < cChars; i++)
+        for (auto i = 0; i < cChars; i++)
         {
             rgChars[i].Attributes = wAttr;
 
@@ -462,22 +462,22 @@ void DbcsWriteRead::SendOutput(const HANDLE hOut,
 
         // This is the stated size of the buffer we're passing.
         // This console API can treat the buffer as a 2D array. We're only doing 1 dimension so the Y is 1 and the X is the number of CHAR_INFO characters.
-        COORD coordBufferSize = { 0 };
-        coordBufferSize.Y = 1;
-        coordBufferSize.X = cChars;
+        til::coord coordBufferSize;
+        coordBufferSize.y = 1;
+        coordBufferSize.x = cChars;
 
         // We want to write to the coordinate 0,0 of the buffer. The test setup function has blanked out that line.
-        COORD coordBufferTarget = { 0 };
+        til::coord coordBufferTarget;
 
         // inclusive rectangle (bottom and right are INSIDE the read area. usually are exclusive.)
-        SMALL_RECT srWriteRegion = { 0 };
+        til::small_rect srWriteRegion;
 
         // Since we could have full-width characters, we have to "allow" the console to write up to the entire A string length (up to double the W length)
-        srWriteRegion.Right = cTestString - 1;
+        srWriteRegion.right = cTestString - 1;
 
         // Save the expected written rectangle for comparison after the call
         srWrittenExpected = { 0 };
-        srWrittenExpected.Right = cChars - 1; // we expect that the written report will be the number of characters inserted, not the size of buffer consumed
+        srWrittenExpected.right = cChars - 1; // we expect that the written report will be the number of characters inserted, not the size of buffer consumed
 
         // NOTE: Don't VERIFY these calls or we will overwrite the text in the buffer with the log message.
         if (fIsUnicode)
@@ -498,7 +498,7 @@ void DbcsWriteRead::SendOutput(const HANDLE hOut,
     }
     case DbcsWriteRead::WriteMode::WriteConsoleOutputCharacterFunc:
     {
-        COORD coordBufferTarget = { 0 };
+        til::coord coordBufferTarget;
 
         if (fIsUnicode)
         {
@@ -537,15 +537,15 @@ void DbcsWriteRead::SendOutput(const HANDLE hOut,
     }
 
     // Move the cursor down a line in case log info prints out.
-    COORD coordSetCursor = { 0 };
-    coordSetCursor.Y = 1;
+    til::coord coordSetCursor;
+    coordSetCursor.y = 1;
     SetConsoleCursorPosition(hOut, coordSetCursor);
 
     // If we had log info to print, print it now that it's safe (cursor out of the test data we printed)
     // This only matters for when the test is run in the same window as the runner and could print log information.
     if (fUseRectWritten)
     {
-        Log::Comment(NoThrowString().Format(L"WriteRegion T: %d L: %d B: %d R: %d", srWritten.Top, srWritten.Left, srWritten.Bottom, srWritten.Right));
+        Log::Comment(NoThrowString().Format(L"WriteRegion T: %d L: %d B: %d R: %d", srWritten.top, srWritten.left, srWritten.bottom, srWritten.right));
         VERIFY_ARE_EQUAL(srWrittenExpected, srWritten);
     }
     else if (fUseDwordWritten)
@@ -1708,22 +1708,22 @@ void DbcsWriteRead::RetrieveOutput(const HANDLE hOut,
                                    _Out_writes_(cChars) CHAR_INFO* const rgChars,
                                    const SHORT cChars)
 {
-    COORD coordBufferTarget = { 0 };
+    til::coord coordBufferTarget;
 
     switch (ReadMode)
     {
     case DbcsWriteRead::ReadMode::ReadConsoleOutputFunc:
     {
         // Since we wrote (in SendOutput function) to the 0,0 line, we need to read back the same width from that line.
-        COORD coordBufferSize = { 0 };
-        coordBufferSize.Y = 1;
-        coordBufferSize.X = cChars;
+        til::coord coordBufferSize;
+        coordBufferSize.y = 1;
+        coordBufferSize.x = cChars;
 
-        SMALL_RECT srReadRegion = { 0 }; // inclusive rectangle (bottom and right are INSIDE the read area. usually are exclusive.)
-        srReadRegion.Right = cChars - 1;
+        til::small_rect srReadRegion; // inclusive rectangle (bottom and right are INSIDE the read area. usually are exclusive.)
+        srReadRegion.right = cChars - 1;
 
         // return value for read region shouldn't change
-        SMALL_RECT const srReadRegionExpected = srReadRegion;
+        const auto srReadRegionExpected = srReadRegion;
 
         if (!fReadUnicode)
         {
@@ -1734,7 +1734,7 @@ void DbcsWriteRead::RetrieveOutput(const HANDLE hOut,
             VERIFY_WIN32_BOOL_SUCCEEDED_RETURN(ReadConsoleOutputW(hOut, rgChars, coordBufferSize, coordBufferTarget, &srReadRegion));
         }
 
-        Log::Comment(NoThrowString().Format(L"ReadRegion T: %d L: %d B: %d R: %d", srReadRegion.Top, srReadRegion.Left, srReadRegion.Bottom, srReadRegion.Right));
+        Log::Comment(NoThrowString().Format(L"ReadRegion T: %d L: %d B: %d R: %d", srReadRegion.top, srReadRegion.left, srReadRegion.bottom, srReadRegion.right));
         VERIFY_ARE_EQUAL(srReadRegionExpected, srReadRegion);
         break;
     }
@@ -1983,12 +1983,12 @@ void DbcsTests::TestDbcsBisect()
     if (CheckLastError(fSuccess, L"GetConsoleScreenBufferInfoEx"))
     {
         Log::Comment(L"Set cursor position to the last column in the buffer width.");
-        sbiex.dwCursorPosition.X = sbiex.dwSize.X - 1;
+        sbiex.dwCursorPosition.x = sbiex.dwSize.x - 1;
 
-        COORD const coordEndOfLine = sbiex.dwCursorPosition; // this is the end of line position we're going to write at
-        COORD coordStartOfNextLine;
-        coordStartOfNextLine.X = 0;
-        coordStartOfNextLine.Y = sbiex.dwCursorPosition.Y + 1;
+        const auto coordEndOfLine = sbiex.dwCursorPosition; // this is the end of line position we're going to write at
+        til::coord coordStartOfNextLine;
+        coordStartOfNextLine.x = 0;
+        coordStartOfNextLine.y = sbiex.dwCursorPosition.y + 1;
 
         fSuccess = SetConsoleCursorPosition(hOut, sbiex.dwCursorPosition);
         if (CheckLastError(fSuccess, L"SetConsoleScreenBufferInfoEx"))
@@ -2029,16 +2029,16 @@ void DbcsTests::TestDbcsBisect()
                         fSuccess = GetConsoleScreenBufferInfoEx(hOut, &sbiex);
                         if (CheckLastError(fSuccess, L"GetConsoleScreenBufferInfoEx"))
                         {
-                            VERIFY_ARE_EQUAL(coordStartOfNextLine.Y, sbiex.dwCursorPosition.Y, L"Cursor has moved down to next line.");
-                            VERIFY_ARE_EQUAL(coordStartOfNextLine.X + 2, sbiex.dwCursorPosition.X, L"Cursor has advanced two spaces on next line for double wide character.");
+                            VERIFY_ARE_EQUAL(coordStartOfNextLine.y, sbiex.dwCursorPosition.y, L"Cursor has moved down to next line.");
+                            VERIFY_ARE_EQUAL(coordStartOfNextLine.x + 2, sbiex.dwCursorPosition.x, L"Cursor has advanced two spaces on next line for double wide character.");
 
                             // TODO: This bit needs to move into a UIA test
                             /*Log::Comment(L"We can only run the resize test in the v2 console. We'll skip it if it turns out v2 is off.");
                             if (IsV2Console())
                             {
                                 Log::Comment(L"Test that the character moves back up when the window is unwrapped. Make the window one larger.");
-                                sbiex.srWindow.Right++;
-                                sbiex.dwSize.X++;
+                                sbiex.srWindow.right++;
+                                sbiex.dwSize.x++;
                                 fSuccess = SetConsoleScreenBufferInfoEx(hOut, &sbiex);
                                 if (CheckLastError(fSuccess, L"SetConsoleScreenBufferInfoEx"))
                                 {
@@ -2052,8 +2052,8 @@ void DbcsTests::TestDbcsBisect()
                                         VERIFY_ARE_EQUAL(wchHiraganaU, wchBuffer2[0], L"The character should now be up one line.");
 
                                         Log::Comment(L"Now shrink the window one more time and make sure the character rolls back down a line.");
-                                        sbiex.srWindow.Right--;
-                                        sbiex.dwSize.X--;
+                                        sbiex.srWindow.right--;
+                                        sbiex.dwSize.x--;
                                         fSuccess = SetConsoleScreenBufferInfoEx(hOut, &sbiex);
                                         if (CheckLastError(fSuccess, L"SetConsoleScreenBufferInfoEx"))
                                         {
@@ -2101,17 +2101,17 @@ void DbcsTests::TestDbcsBisectWriteCellsEndW()
     originalCell.Char.UnicodeChar = L'\x30a2'; // Japanese full-width katakana A
     originalCell.Attributes = COMMON_LVB_LEADING_BYTE | FOREGROUND_RED;
 
-    SMALL_RECT writeRegion;
-    writeRegion.Top = 0;
-    writeRegion.Bottom = 0;
-    writeRegion.Left = info.dwSize.X - 1;
-    writeRegion.Right = info.dwSize.X - 1;
+    til::small_rect writeRegion;
+    writeRegion.top = 0;
+    writeRegion.bottom = 0;
+    writeRegion.left = info.dwSize.x - 1;
+    writeRegion.right = info.dwSize.x - 1;
 
     const auto originalWriteRegion = writeRegion;
     VERIFY_WIN32_BOOL_SUCCEEDED(WriteConsoleOutputW(out, &originalCell, { 1, 1 }, { 0, 0 }, &writeRegion));
     VERIFY_ARE_EQUAL(originalWriteRegion, writeRegion);
 
-    SMALL_RECT readRegion = originalWriteRegion;
+    auto readRegion = originalWriteRegion;
     const auto originalReadRegion = readRegion;
     CHAR_INFO readCell;
 
@@ -2140,16 +2140,16 @@ void DbcsTests::TestDbcsBisectWriteCellsBeginW()
     originalCell.Char.UnicodeChar = L'\x30a2';
     originalCell.Attributes = COMMON_LVB_TRAILING_BYTE | FOREGROUND_RED;
 
-    SMALL_RECT writeRegion;
-    writeRegion.Top = 0;
-    writeRegion.Bottom = 0;
-    writeRegion.Left = 0;
-    writeRegion.Right = 0;
+    til::small_rect writeRegion;
+    writeRegion.top = 0;
+    writeRegion.bottom = 0;
+    writeRegion.left = 0;
+    writeRegion.right = 0;
     const auto originalWriteRegion = writeRegion;
     VERIFY_WIN32_BOOL_SUCCEEDED(WriteConsoleOutputW(out, &originalCell, { 1, 1 }, { 0, 0 }, &writeRegion));
     VERIFY_ARE_EQUAL(originalWriteRegion, writeRegion);
 
-    SMALL_RECT readRegion = originalWriteRegion;
+    auto readRegion = originalWriteRegion;
     const auto originalReadRegion = readRegion;
     CHAR_INFO readCell;
 
@@ -2180,16 +2180,16 @@ void DbcsTests::TestDbcsBisectWriteCellsEndA()
     originalCell.Char.AsciiChar = '\x82';
     originalCell.Attributes = COMMON_LVB_LEADING_BYTE | FOREGROUND_RED;
 
-    SMALL_RECT writeRegion;
-    writeRegion.Top = 0;
-    writeRegion.Bottom = 0;
-    writeRegion.Left = info.dwSize.X - 1;
-    writeRegion.Right = info.dwSize.X - 1;
+    til::small_rect writeRegion;
+    writeRegion.top = 0;
+    writeRegion.bottom = 0;
+    writeRegion.left = info.dwSize.x - 1;
+    writeRegion.right = info.dwSize.x - 1;
     const auto originalWriteRegion = writeRegion;
     VERIFY_WIN32_BOOL_SUCCEEDED(WriteConsoleOutputA(out, &originalCell, { 1, 1 }, { 0, 0 }, &writeRegion));
     VERIFY_ARE_EQUAL(originalWriteRegion, writeRegion);
 
-    SMALL_RECT readRegion = originalWriteRegion;
+    auto readRegion = originalWriteRegion;
     const auto originalReadRegion = readRegion;
     CHAR_INFO readCell;
 
@@ -2221,16 +2221,16 @@ void DbcsTests::TestDbcsBisectWriteCellsBeginA()
     originalCell.Char.AsciiChar = '\xA9';
     originalCell.Attributes = COMMON_LVB_TRAILING_BYTE | FOREGROUND_RED;
 
-    SMALL_RECT writeRegion;
-    writeRegion.Top = 0;
-    writeRegion.Bottom = 0;
-    writeRegion.Left = 0;
-    writeRegion.Right = 0;
+    til::small_rect writeRegion;
+    writeRegion.top = 0;
+    writeRegion.bottom = 0;
+    writeRegion.left = 0;
+    writeRegion.right = 0;
     const auto originalWriteRegion = writeRegion;
     VERIFY_WIN32_BOOL_SUCCEEDED(WriteConsoleOutputA(out, &originalCell, { 1, 1 }, { 0, 0 }, &writeRegion));
     VERIFY_ARE_EQUAL(originalWriteRegion, writeRegion);
 
-    SMALL_RECT readRegion = originalWriteRegion;
+    auto readRegion = originalWriteRegion;
     const auto originalReadRegion = readRegion;
     CHAR_INFO readCell;
 
@@ -2414,7 +2414,7 @@ void DbcsTests::TestDbcsOneByOne()
     char test[] = "\xb2\xe2\xca\xd4\xd6\xd0\xce\xc4";
 
     // Prepare structures for readback.
-    COORD coordReadPos = { 0 };
+    til::coord coordReadPos;
     DWORD const cchReadBack = 2u;
     char chReadBack[2];
     DWORD dwReadOrWritten = 0u;
@@ -2439,7 +2439,7 @@ void DbcsTests::TestDbcsOneByOne()
             Log::Comment(L"After trailing is written, character should be valid from Chinese plane (not checking exactly, just that it was composed.");
             VERIFY_IS_LESS_THAN((unsigned char)'\x80', (unsigned char)chReadBack[0]);
             VERIFY_IS_LESS_THAN((unsigned char)'\x80', (unsigned char)chReadBack[1]);
-            coordReadPos.X += 2; // advance X for next read back. Move 2 positions because it's a wide char.
+            coordReadPos.x += 2; // advance X for next read back. Move 2 positions because it's a wide char.
         }
     }
 }
@@ -2459,7 +2459,7 @@ void DbcsTests::TestDbcsTrailLead()
     char test3[] = "\xd4\xd6\xd0\xce\xc4";
 
     // Prepare structures for readback.
-    COORD const coordReadPos = { 0 };
+    const auto coordReadPos = { 0 };
     DWORD const cchReadBack = 8u;
     char chReadBack[9];
     DWORD dwReadOrWritten = 0u;
@@ -2519,7 +2519,7 @@ void DbcsTests::TestDbcsStdCoutScenario()
     printf("%s\n", test);
 
     // Prepare structures for readback.
-    COORD coordReadPos = { 0 };
+    til::coord coordReadPos;
     DWORD const cchReadBack = (DWORD)strlen(test);
     wistd::unique_ptr<char[]> const psReadBack = wil::make_unique_failfast<char[]>(cchReadBack + 1);
     DWORD dwRead = 0;
@@ -2531,7 +2531,7 @@ void DbcsTests::TestDbcsStdCoutScenario()
     // Clean up and move down a line for next test.
     ZeroMemory(psReadBack.get(), cchReadBack);
     dwRead = 0;
-    coordReadPos.Y++;
+    coordReadPos.y++;
 
     Log::Comment(L"Write string using std::cout.");
     std::cout << test << std::endl;

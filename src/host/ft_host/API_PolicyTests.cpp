@@ -35,7 +35,7 @@ void DoWrongWayVerbTest(_In_ BOOL bResultExpected, _In_ DWORD dwStatusExpected)
         {
             wchar_t pwsz[50];
             char psz[50];
-            COORD coord = { 0 };
+            til::coord coord;
 
             SetLastError(0);
             bResultActual = ReadConsoleOutputCharacterW(GetStdOutputHandle(), pwsz, ARRAYSIZE(pwsz), coord, &dwResult);
@@ -57,15 +57,15 @@ void DoWrongWayVerbTest(_In_ BOOL bResultExpected, _In_ DWORD dwStatusExpected)
         Log::Comment(L"Read the output buffer using CHAR_INFO commands.");
         {
             CHAR_INFO pci[50];
-            COORD coordPos = { 0 };
-            COORD coordPci;
-            coordPci.X = 50;
-            coordPci.Y = 1;
-            SMALL_RECT srPci;
-            srPci.Top = 1;
-            srPci.Bottom = 1;
-            srPci.Left = 1;
-            srPci.Right = 50;
+            til::coord coordPos;
+            til::coord coordPci;
+            coordPci.x = 50;
+            coordPci.y = 1;
+            til::small_rect srPci;
+            srPci.top = 1;
+            srPci.bottom = 1;
+            srPci.left = 1;
+            srPci.right = 50;
 
             SetLastError(0);
             bResultActual = ReadConsoleOutputW(GetStdOutputHandle(), pci, coordPci, coordPos, &srPci);

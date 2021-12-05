@@ -22,26 +22,26 @@ Revision History:
 #include "../buffer/out/OutputCell.hpp"
 #include "../buffer/out/OutputCellRect.hpp"
 
-void ScreenBufferSizeChange(const COORD coordNewSize);
+void ScreenBufferSizeChange(const til::coord coordNewSize);
 
 [[nodiscard]] NTSTATUS DoCreateScreenBuffer();
 
 std::vector<WORD> ReadOutputAttributes(const SCREEN_INFORMATION& screenInfo,
-                                       const COORD coordRead,
+                                       const til::coord coordRead,
                                        const size_t amountToRead);
 
 std::wstring ReadOutputStringW(const SCREEN_INFORMATION& screenInfo,
-                               const COORD coordRead,
+                               const til::coord coordRead,
                                const size_t amountToRead);
 
 std::string ReadOutputStringA(const SCREEN_INFORMATION& screenInfo,
-                              const COORD coordRead,
+                              const til::coord coordRead,
                               const size_t amountToRead);
 
 void ScrollRegion(SCREEN_INFORMATION& screenInfo,
-                  const SMALL_RECT scrollRect,
-                  const std::optional<SMALL_RECT> clipRect,
-                  const COORD destinationOrigin,
+                  const til::small_rect scrollRect,
+                  const std::optional<til::small_rect> clipRect,
+                  const til::coord destinationOrigin,
                   const wchar_t fillCharGiven,
                   const TextAttribute fillAttrsGiven);
 

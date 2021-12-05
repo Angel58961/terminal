@@ -20,7 +20,7 @@ using namespace Microsoft::Console::Render;
 {
     RECT rc = _psInvalidData.rcPaint;
 
-    SMALL_RECT sr = { 0 };
+    til::small_rect sr;
     RETURN_IF_FAILED(_ScaleByFont(&rc, &sr));
 
     _invalidCharacters = sr;
@@ -52,7 +52,7 @@ using namespace Microsoft::Console::Render;
             {
                 int const totalWidth = abc.abcA + abc.abcB + abc.abcC;
 
-                isFullWidth = totalWidth > _GetFontSize().X;
+                isFullWidth = totalWidth > _GetFontSize().x;
             }
         }
         else
@@ -60,7 +60,7 @@ using namespace Microsoft::Console::Render;
             INT cpxWidth = 0;
             if (GetCharWidth32W(_hdcMemoryContext, wch, wch, &cpxWidth))
             {
-                isFullWidth = cpxWidth > _GetFontSize().X;
+                isFullWidth = cpxWidth > _GetFontSize().y;
             }
         }
     }
@@ -76,22 +76,22 @@ using namespace Microsoft::Console::Render;
 }
 
 // Routine Description:
-// - Scales a character region (SMALL_RECT) into a pixel region (RECT) by the current font size.
+// - Scales a character region (til::small_rect) into a pixel region (RECT) by the current font size.
 // Arguments:
-// - psr = Character region (SMALL_RECT) from the console text buffer.
+// - psr = Character region (til::small_rect) from the console text buffer.
 // - prc - Pixel region (RECT) for drawing to the client surface.
 // Return Value:
 // - S_OK or safe math failure value.
-[[nodiscard]] HRESULT GdiEngine::_ScaleByFont(const SMALL_RECT* const psr, _Out_ RECT* const prc) const noexcept
+[[nodiscard]] HRESULT GdiEngine::_ScaleByFont(const til::small_rect* const psr, _Out_ RECT* const prc) const noexcept
 {
-    COORD const coordFontSize = _GetFontSize();
-    RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INVALID_STATE), coordFontSize.X == 0 || coordFontSize.Y == 0);
+    const auto coordFontSize = _GetFontSize();
+    RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INVALID_STATE), coordFontSize.x == 0 || coordFontSize.y == 0);
 
     RECT rc;
-    RETURN_IF_FAILED(LongMult(psr->Left, coordFontSize.X, &rc.left));
-    RETURN_IF_FAILED(LongMult(psr->Right, coordFontSize.X, &rc.right));
-    RETURN_IF_FAILED(LongMult(psr->Top, coordFontSize.Y, &rc.top));
-    RETURN_IF_FAILED(LongMult(psr->Bottom, coordFontSize.Y, &rc.bottom));
+    RETURN_IF_FAILED(LongMult(psr->left, coordFontSize.x, &rc.left));
+    RETURN_IF_FAILED(LongMult(psr->right, coordFontSize.x, &rc.right));
+    RETURN_IF_FAILED(LongMult(psr->top, coordFontSize.y, &rc.top));
+    RETURN_IF_FAILED(LongMult(psr->bottom, coordFontSize.y, &rc.bottom));
 
     *prc = rc;
 
@@ -99,20 +99,20 @@ using namespace Microsoft::Console::Render;
 }
 
 // Routine Description:
-// - Scales a character coordinate (COORD) into a pixel coordinate (POINT) by the current font size.
+// - Scales a character coordinate (til::coord) into a pixel coordinate (POINT) by the current font size.
 // Arguments:
-// - pcoord - Character coordinate (COORD) from the console text buffer.
+// - pcoord - Character coordinate (til::coord) from the console text buffer.
 // - ppt - Pixel coordinate (POINT) for drawing to the client surface.
 // Return Value:
 // - S_OK or safe math failure value.
-[[nodiscard]] HRESULT GdiEngine::_ScaleByFont(const COORD* const pcoord, _Out_ POINT* const pPoint) const noexcept
+[[nodiscard]] HRESULT GdiEngine::_ScaleByFont(const til::coord* const pcoord, _Out_ POINT* const pPoint) const noexcept
 {
-    COORD const coordFontSize = _GetFontSize();
-    RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INVALID_STATE), coordFontSize.X == 0 || coordFontSize.Y == 0);
+    const auto coordFontSize = _GetFontSize();
+    RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INVALID_STATE), coordFontSize.x == 0 || coordFontSize.y == 0);
 
     POINT pt;
-    RETURN_IF_FAILED(LongMult(pcoord->X, coordFontSize.X, &pt.x));
-    RETURN_IF_FAILED(LongMult(pcoord->Y, coordFontSize.Y, &pt.y));
+    RETURN_IF_FAILED(LongMult(pcoord->x, coordFontSize.x, &pt.x));
+    RETURN_IF_FAILED(LongMult(pcoord->y, coordFontSize.y, &pt.y));
 
     *pPoint = pt;
 
@@ -120,20 +120,20 @@ using namespace Microsoft::Console::Render;
 }
 
 // Routine Description:
-// - Scales a pixel region (RECT) into a character region (SMALL_RECT) by the current font size.
+// - Scales a pixel region (RECT) into a character region (til::small_rect) by the current font size.
 // Arguments:
 // - prc - Pixel region (RECT) from drawing to the client surface.
-// - psr - Character region (SMALL_RECT) from the console text buffer.
+// - psr - Character region (til::small_rect) from the console text buffer.
 // Return Value:
 // - S_OK or safe math failure value.
-[[nodiscard]] HRESULT GdiEngine::_ScaleByFont(const RECT* const prc, _Out_ SMALL_RECT* const psr) const noexcept
+[[nodiscard]] HRESULT GdiEngine::_ScaleByFont(const RECT* const prc, _Out_ til::small_rect* const psr) const noexcept
 {
-    COORD const coordFontSize = _GetFontSize();
-    RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INVALID_STATE), coordFontSize.X == 0 || coordFontSize.Y == 0);
+    const auto coordFontSize = _GetFontSize();
+    RETURN_HR_IF(HRESULT_FROM_WIN32(ERROR_INVALID_STATE), coordFontSize.x == 0 || coordFontSize.y == 0);
 
     SMALL_RECT sr;
-    sr.Left = static_cast<SHORT>(prc->left / coordFontSize.X);
-    sr.Top = static_cast<SHORT>(prc->top / coordFontSize.Y);
+    sr.Left = static_cast<SHORT>(prc->left / coordFontSize.x);
+    sr.Top = static_cast<SHORT>(prc->top / coordFontSize.y);
 
     // We're dividing integers so we're always going to round down to the next whole number on division.
     // To make sure that when we round down, we remain an exclusive rectangle, we need to add the width (or height) - 1 before
@@ -159,8 +159,8 @@ using namespace Microsoft::Console::Render;
     LONG lBottom = prc->bottom;
 
     // Add the width of a font (in pixels) to the rect
-    RETURN_IF_FAILED(LongAdd(lRight, coordFontSize.X, &lRight));
-    RETURN_IF_FAILED(LongAdd(lBottom, coordFontSize.Y, &lBottom));
+    RETURN_IF_FAILED(LongAdd(lRight, coordFontSize.x, &lRight));
+    RETURN_IF_FAILED(LongAdd(lBottom, coordFontSize.y, &lBottom));
 
     // Subtract 1 to ensure that we round down.
     RETURN_IF_FAILED(LongSub(lRight, 1, &lRight));
@@ -168,10 +168,10 @@ using namespace Microsoft::Console::Render;
 
     // Divide by font size to see how many rows/columns
     // note: no safe math for div.
-    lRight /= coordFontSize.X;
-    lBottom /= coordFontSize.Y;
+    lRight /= coordFontSize.x;
+    lBottom /= coordFontSize.y;
 
-    // Attempt to fit into SMALL_RECT's short variable.
+    // Attempt to fit into til::small_rect's short variable.
     RETURN_IF_FAILED(LongToShort(lRight, &sr.Right));
     RETURN_IF_FAILED(LongToShort(lBottom, &sr.Bottom));
 
@@ -179,7 +179,7 @@ using namespace Microsoft::Console::Render;
     RETURN_IF_FAILED(ShortSub(sr.Right, 1, &sr.Right));
     RETURN_IF_FAILED(ShortSub(sr.Bottom, 1, &sr.Bottom));
 
-    *psr = sr;
+    *psr = til::wrap_small_rect(sr);
 
     return S_OK;
 }

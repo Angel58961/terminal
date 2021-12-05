@@ -738,7 +738,7 @@ void DxFontRenderData::_BuildFontRenderData(const FontInfoDesired& desired, Font
     // - 12 ppi font * (96 dpi / 96 dpi) * (96 dpi / 72 points per inch) = 16 pixels tall font for 100% display (96 dpi is 100%)
     // - 12 ppi font * (144 dpi / 96 dpi) * (96 dpi / 72 points per inch) = 24 pixels tall font for 150% display (144 dpi is 150%)
     // - 12 ppi font * (192 dpi / 96 dpi) * (96 dpi / 72 points per inch) = 32 pixels tall font for 200% display (192 dpi is 200%)
-    float heightDesired = static_cast<float>(desired.GetEngineSize().Y) * static_cast<float>(USER_DEFAULT_SCREEN_DPI) / POINTS_PER_INCH;
+    float heightDesired = static_cast<unsigned int>(desired.GetEngineSize().y) * USER_DEFAULT_SCREEN_DPI / POINTS_PER_INCH;
 
     // The advance is the number of pixels left-to-right (X dimension) for the given font.
     // We're finding a proportional factor here with the design units in "ems", not an actual pixel measurement.
@@ -821,16 +821,16 @@ void DxFontRenderData::_BuildFontRenderData(const FontInfoDesired& desired, Font
 
     // The scaled size needs to represent the pixel box that each character will fit within for the purposes
     // of hit testing math and other such multiplication/division.
-    COORD coordSize = { 0 };
-    coordSize.X = gsl::narrow<SHORT>(widthExact);
-    coordSize.Y = gsl::narrow_cast<SHORT>(lineSpacing.height);
+    til::coord coordSize;
+    coordSize.x = gsl::narrow_cast<decltype(coordSize.x)>(widthExact);
+    coordSize.y = gsl::narrow_cast<decltype(coordSize.y)>(lineSpacing.height);
 
     // Unscaled is for the purposes of re-communicating this font back to the renderer again later.
     // As such, we need to give the same original size parameter back here without padding
     // or rounding or scaling manipulation.
-    const COORD unscaled = desired.GetEngineSize();
+    const auto unscaled = desired.GetEngineSize();
 
-    const COORD scaled = coordSize;
+    const auto scaled = coordSize;
 
     actual.SetFromEngine(_defaultFontInfo.GetFamilyName(),
                          desired.GetFamily(),

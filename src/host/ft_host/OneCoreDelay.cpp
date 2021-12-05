@@ -254,7 +254,7 @@ BOOL WINAPI OneCoreDelay::SetCurrentConsoleFontEx(
     return FALSE;
 }
 
-COORD WINAPI OneCoreDelay::GetConsoleFontSize(
+til::coord WINAPI OneCoreDelay::GetConsoleFontSize(
     _In_ HANDLE hConsoleOutput,
     _In_ DWORD nFont)
 {
@@ -262,7 +262,7 @@ COORD WINAPI OneCoreDelay::GetConsoleFontSize(
 
     if (h != nullptr)
     {
-        typedef COORD(WINAPI * PfnGetConsoleFontSize)(HANDLE hConsoleOutput, DWORD nFont);
+        typedef til::coord(WINAPI * PfnGetConsoleFontSize)(HANDLE hConsoleOutput, DWORD nFont);
 
         static PfnGetConsoleFontSize pfn = nullptr;
 

@@ -24,7 +24,7 @@ class SCREEN_INFORMATION;
 void DoSrvPrivateShowCursor(SCREEN_INFORMATION& screenInfo, const bool show) noexcept;
 void DoSrvPrivateAllowCursorBlinking(SCREEN_INFORMATION& screenInfo, const bool fEnable);
 
-[[nodiscard]] NTSTATUS DoSrvPrivateSetScrollingRegion(SCREEN_INFORMATION& screenInfo, const SMALL_RECT& scrollMargins);
+[[nodiscard]] NTSTATUS DoSrvPrivateSetScrollingRegion(SCREEN_INFORMATION& screenInfo, const til::small_rect& scrollMargins);
 [[nodiscard]] NTSTATUS DoSrvPrivateLineFeed(SCREEN_INFORMATION& screenInfo, const bool withReturn);
 [[nodiscard]] NTSTATUS DoSrvPrivateReverseLineFeed(SCREEN_INFORMATION& screenInfo);
 
@@ -56,19 +56,19 @@ void DoSrvGetConsoleOutputCodePage(unsigned int& codepage);
 
 void DoSrvIsConsolePty(bool& isPty);
 
-void DoSrvPrivateDeleteLines(const size_t count);
-void DoSrvPrivateInsertLines(const size_t count);
+void DoSrvPrivateDeleteLines(const til::CoordType count);
+void DoSrvPrivateInsertLines(const til::CoordType count);
 
 void DoSrvPrivateMoveToBottom(SCREEN_INFORMATION& screenInfo);
 
 [[nodiscard]] HRESULT DoSrvPrivateFillRegion(SCREEN_INFORMATION& screenInfo,
-                                             const COORD startPosition,
+                                             const til::coord startPosition,
                                              const size_t fillLength,
                                              const wchar_t fillChar,
                                              const bool standardFillAttrs) noexcept;
 
 [[nodiscard]] HRESULT DoSrvPrivateScrollRegion(SCREEN_INFORMATION& screenInfo,
-                                               const SMALL_RECT scrollRect,
-                                               const std::optional<SMALL_RECT> clipRect,
-                                               const COORD destinationOrigin,
+                                               const til::small_rect scrollRect,
+                                               const std::optional<til::small_rect> clipRect,
+                                               const til::coord destinationOrigin,
                                                const bool standardFillAttrs) noexcept;

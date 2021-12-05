@@ -227,7 +227,7 @@ GdiEngine::~GdiEngine()
 {
     XFORM lineTransform = {};
     // The X delta is to account for the horizontal viewport offset.
-    lineTransform.eDx = viewportLeft ? -1.0f * viewportLeft * _GetFontSize().X : 0.0f;
+    lineTransform.eDx = viewportLeft ? -1.0f * viewportLeft * _GetFontSize().x : 0.0f;
     switch (lineRendition)
     {
     case LineRendition::SingleWidth:
@@ -242,14 +242,14 @@ GdiEngine::~GdiEngine()
         lineTransform.eM11 = 2; // double width
         lineTransform.eM22 = 2; // double height
         // The Y delta is to negate the offset caused by the scaled height.
-        lineTransform.eDy = -1.0f * targetRow * _GetFontSize().Y;
+        lineTransform.eDy = -1.0f * targetRow * _GetFontSize().y;
         break;
     case LineRendition::DoubleHeightBottom:
         lineTransform.eM11 = 2; // double width
         lineTransform.eM22 = 2; // double height
         // The Y delta is to negate the offset caused by the scaled height.
         // An extra row is added because we need the bottom half of the line.
-        lineTransform.eDy = -1.0f * (targetRow + 1) * _GetFontSize().Y;
+        lineTransform.eDy = -1.0f * (targetRow + 1) * _GetFontSize().y;
         break;
     }
     // Return early if the new matrix is the same as the current transform.
@@ -397,7 +397,7 @@ GdiEngine::~GdiEngine()
 
     // However, we don't want the underline to extend past the bottom of the
     // cell, so we clamp the offset to fit just inside.
-    const auto maxUnderlineOffset = Font.GetSize().Y - _lineMetrics.underlineWidth;
+    const auto maxUnderlineOffset = Font.GetSize().y - _lineMetrics.underlineWidth;
     _lineMetrics.underlineOffset2 = std::min(_lineMetrics.underlineOffset2, maxUnderlineOffset);
 
     // But if the resulting gap isn't big enough even to register as a thicker
@@ -486,7 +486,7 @@ GdiEngine::~GdiEngine()
 // - srNewViewport - The bounds of the new viewport.
 // Return Value:
 // - HRESULT S_OK
-[[nodiscard]] HRESULT GdiEngine::UpdateViewport(const SMALL_RECT /*srNewViewport*/) noexcept
+[[nodiscard]] HRESULT GdiEngine::UpdateViewport(const til::small_rect /*srNewViewport*/) noexcept
 {
     return S_OK;
 }
@@ -544,7 +544,7 @@ GdiEngine::~GdiEngine()
     RETURN_HR_IF_NULL(E_FAIL, hdcTemp.get());
 
     // Get a special engine size because TT fonts can't specify X or we'll get weird scaling under some circumstances.
-    COORD coordFontRequested = FontDesired.GetEngineSize();
+    auto coordFontRequested = FontDesired.GetEngineSize();
 
     // First, check to see if we're asking for the default raster font.
     if (FontDesired.IsDefaultRasterFont())
@@ -574,8 +574,8 @@ GdiEngine::~GdiEngine()
         // attention to the font previews to ensure that the font being selected by GDI is exactly the font requested --
         // some monospace fonts look very similar.
         LOGFONTW lf = { 0 };
-        lf.lfHeight = s_ScaleByDpi(coordFontRequested.Y, iDpi);
-        lf.lfWidth = s_ScaleByDpi(coordFontRequested.X, iDpi);
+        lf.lfHeight = s_ScaleByDpi(coordFontRequested.y, iDpi);
+        lf.lfWidth = s_ScaleByDpi(coordFontRequested.x, iDpi);
         lf.lfWeight = FontDesired.GetWeight();
 
         // If we're searching for Terminal, our supported Raster Font, then we must use OEM_CHARSET.
@@ -634,9 +634,9 @@ GdiEngine::~GdiEngine()
     SIZE sz;
     RETURN_HR_IF(E_FAIL, !(GetTextExtentPoint32W(hdcTemp.get(), L"0", 1, &sz)));
 
-    COORD coordFont;
-    coordFont.X = static_cast<SHORT>(sz.cx);
-    coordFont.Y = static_cast<SHORT>(sz.cy);
+    til::coord coordFont;
+    coordFont.x = static_cast<SHORT>(sz.cx);
+    coordFont.y = static_cast<SHORT>(sz.cy);
 
     // The extent point won't necessarily be perfect for the width, so get the ABC metrics for the 0 if possible to improve the measurement.
     // This will fail for non-TrueType fonts and we'll fall back to what GetTextExtentPoint said.
@@ -649,7 +649,7 @@ GdiEngine::~GdiEngine()
             // No negatives or zeros or we'll have bad character-to-pixel math later.
             if (abcTotal > 0)
             {
-                coordFont.X = static_cast<SHORT>(abcTotal);
+                coordFont.x = static_cast<SHORT>(abcTotal);
             }
         }
     }
@@ -670,9 +670,9 @@ GdiEngine::~GdiEngine()
         {
             coordFontRequested = coordFont;
         }
-        else if (coordFontRequested.X == 0)
+        else if (coordFontRequested.x == 0)
         {
-            coordFontRequested.X = (SHORT)s_ShrinkByDpi(coordFont.X, iDpi);
+            coordFontRequested.x = (SHORT)s_ShrinkByDpi(coordFont.x, iDpi);
         }
 
         Font.SetFromEngine(currentFaceName,
@@ -692,7 +692,7 @@ GdiEngine::~GdiEngine()
 // - pFontSize - receives the current X by Y size of the font.
 // Return Value:
 // - S_OK
-[[nodiscard]] HRESULT GdiEngine::GetFontSize(_Out_ COORD* const pFontSize) noexcept
+[[nodiscard]] HRESULT GdiEngine::GetFontSize(_Out_ til::coord* const pFontSize) noexcept
 {
     *pFontSize = _GetFontSize();
     return S_OK;
@@ -704,7 +704,7 @@ GdiEngine::~GdiEngine()
 // - <none>
 // Return Value:
 // - X by Y size of the font.
-COORD GdiEngine::_GetFontSize() const
+til::coord GdiEngine::_GetFontSize() const
 {
     return _coordFontLast;
 }

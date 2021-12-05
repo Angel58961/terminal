@@ -18,11 +18,11 @@ Author(s):
 #include <unordered_map>
 #include <climits>
 
-// std::unordered_map needs help to know how to hash a COORD
+// std::unordered_map needs help to know how to hash a til::coord
 namespace std
 {
     template<>
-    struct hash<COORD>
+    struct hash<til::coord>
     {
         // Routine Description:
         // - hashes a coord. coord will be hashed by storing the x and y values consecutively in the lower
@@ -31,11 +31,11 @@ namespace std
         // - coord - the coord to hash
         // Return Value:
         // - the hashed coord
-        constexpr size_t operator()(const COORD& coord) const noexcept
+        constexpr size_t operator()(const til::coord& coord) const noexcept
         {
-            size_t retVal = coord.Y;
-            const size_t xCoord = coord.X;
-            retVal |= xCoord << (sizeof(coord.Y) * CHAR_BIT);
+            size_t retVal = coord.y;
+            const size_t xCoord = coord.x;
+            retVal |= xCoord << (sizeof(coord.y) * CHAR_BIT);
             return retVal;
         }
     };
@@ -44,7 +44,7 @@ namespace std
 class UnicodeStorage final
 {
 public:
-    using key_type = typename COORD;
+    using key_type = typename til::coord;
     using mapped_type = typename std::vector<wchar_t>;
 
     UnicodeStorage() noexcept;
@@ -55,7 +55,7 @@ public:
 
     void Erase(const key_type key) noexcept;
 
-    void Remap(const std::unordered_map<SHORT, SHORT>& rowMap, const std::optional<SHORT> width);
+    void Remap(const std::unordered_map<til::CoordType, til::CoordType>& rowMap, const std::optional<til::CoordType> width);
 
 private:
     std::unordered_map<key_type, mapped_type> _map;

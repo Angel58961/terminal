@@ -39,8 +39,8 @@ namespace Microsoft::Terminal
         // specific endpoint range
         HRESULT RuntimeClassInitialize(_In_ Microsoft::Console::Types::IUiaData* pData,
                                        _In_ IRawElementProviderSimple* const pProvider,
-                                       const COORD start,
-                                       const COORD end,
+                                       const til::coord start,
+                                       const til::coord end,
                                        bool blockRange = false,
                                        const std::wstring_view wordDelimiters = DefaultWordDelimiter) noexcept override;
 
@@ -57,6 +57,6 @@ namespace Microsoft::Terminal
     protected:
         void _TranslatePointToScreen(LPPOINT clientPoint) const override;
         void _TranslatePointFromScreen(LPPOINT screenPoint) const override;
-        const COORD _getScreenFontSize() const noexcept override;
+        const til::coord _getScreenFontSize() const noexcept override;
     };
 }

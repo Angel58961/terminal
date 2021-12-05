@@ -35,10 +35,10 @@ class RectangleTests
     {
         Log::Comment(L"0.) Normal unsigned construct.");
         {
-            const size_t l = 5;
-            const size_t t = 10;
-            const size_t r = 15;
-            const size_t b = 20;
+            const til::CoordType l = 5;
+            const til::CoordType t = 10;
+            const til::CoordType r = 15;
+            const til::CoordType b = 20;
 
             const til::rectangle rc{ l, t, r, b };
             VERIFY_ARE_EQUAL(5, rc._topLeft.x());
@@ -49,10 +49,10 @@ class RectangleTests
 
         Log::Comment(L"1.) Unsigned construct overflow on left.");
         {
-            constexpr size_t l = std::numeric_limits<size_t>().max();
-            const size_t t = 10;
-            const size_t r = 15;
-            const size_t b = 20;
+            constexpr til::CoordType l = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType t = 10;
+            const til::CoordType r = 15;
+            const til::CoordType b = 20;
 
             auto fn = [&]() {
                 const til::rectangle rc{ l, t, r, b };
@@ -63,10 +63,10 @@ class RectangleTests
 
         Log::Comment(L"2.) Unsigned construct overflow on top.");
         {
-            const size_t l = 5;
-            constexpr size_t t = std::numeric_limits<size_t>().max();
-            const size_t r = 15;
-            const size_t b = 20;
+            const til::CoordType l = 5;
+            constexpr til::CoordType t = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType r = 15;
+            const til::CoordType b = 20;
 
             auto fn = [&]() {
                 const til::rectangle rc{ l, t, r, b };
@@ -77,10 +77,10 @@ class RectangleTests
 
         Log::Comment(L"3.) Unsigned construct overflow on right.");
         {
-            const size_t l = 5;
-            const size_t t = 10;
-            constexpr size_t r = std::numeric_limits<size_t>().max();
-            const size_t b = 20;
+            const til::CoordType l = 5;
+            const til::CoordType t = 10;
+            constexpr til::CoordType r = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType b = 20;
 
             auto fn = [&]() {
                 const til::rectangle rc{ l, t, r, b };
@@ -91,10 +91,10 @@ class RectangleTests
 
         Log::Comment(L"4.) Unsigned construct overflow on bottom.");
         {
-            const size_t l = 5;
-            const size_t t = 10;
-            const size_t r = 15;
-            constexpr size_t b = std::numeric_limits<size_t>().max();
+            const til::CoordType l = 5;
+            const til::CoordType t = 10;
+            const til::CoordType r = 15;
+            constexpr til::CoordType b = std::numeric_limits<til::CoordType>().max();
 
             auto fn = [&]() {
                 const til::rectangle rc{ l, t, r, b };
@@ -106,10 +106,10 @@ class RectangleTests
 
     TEST_METHOD(SignedConstruct)
     {
-        const ptrdiff_t l = 5;
-        const ptrdiff_t t = 10;
-        const ptrdiff_t r = 15;
-        const ptrdiff_t b = 20;
+        const til::CoordType l = 5;
+        const til::CoordType t = 10;
+        const til::CoordType r = 15;
+        const til::CoordType b = 20;
 
         const til::rectangle rc{ l, t, r, b };
         VERIFY_ARE_EQUAL(5, rc._topLeft.x());
@@ -132,8 +132,8 @@ class RectangleTests
         Log::Comment(L"1.) Overflow x-dimension case.");
         {
             auto fn = [&]() {
-                constexpr ptrdiff_t x = std::numeric_limits<ptrdiff_t>().max();
-                const ptrdiff_t y = 0;
+                constexpr til::CoordType x = std::numeric_limits<til::CoordType>().max();
+                const til::CoordType y = 0;
                 const til::rectangle rc{ til::point{ x, y } };
             };
 
@@ -143,8 +143,8 @@ class RectangleTests
         Log::Comment(L"1.) Overflow y-dimension case.");
         {
             auto fn = [&]() {
-                const ptrdiff_t x = 0;
-                constexpr ptrdiff_t y = std::numeric_limits<ptrdiff_t>().max();
+                const til::CoordType x = 0;
+                constexpr til::CoordType y = std::numeric_limits<til::CoordType>().max();
                 const til::rectangle rc{ til::point{ x, y } };
             };
 
@@ -154,10 +154,10 @@ class RectangleTests
 
     TEST_METHOD(TwoPointsConstruct)
     {
-        const ptrdiff_t l = 5;
-        const ptrdiff_t t = 10;
-        const ptrdiff_t r = 15;
-        const ptrdiff_t b = 20;
+        const til::CoordType l = 5;
+        const til::CoordType t = 10;
+        const til::CoordType r = 15;
+        const til::CoordType b = 20;
 
         const til::rectangle rc{ til::point{ l, t }, til::point{ r, b } };
         VERIFY_ARE_EQUAL(5, rc._topLeft.x());
@@ -194,8 +194,8 @@ class RectangleTests
         Log::Comment(L"1.) Overflow x-dimension case.");
         {
             auto fn = [&]() {
-                constexpr ptrdiff_t x = std::numeric_limits<ptrdiff_t>().max();
-                const ptrdiff_t y = 0;
+                constexpr til::CoordType x = std::numeric_limits<til::CoordType>().max();
+                const til::CoordType y = 0;
                 const til::rectangle rc{ pt, til::size{ x, y } };
             };
 
@@ -205,8 +205,8 @@ class RectangleTests
         Log::Comment(L"1.) Overflow y-dimension case.");
         {
             auto fn = [&]() {
-                const ptrdiff_t x = 0;
-                constexpr ptrdiff_t y = std::numeric_limits<ptrdiff_t>().max();
+                const til::CoordType x = 0;
+                constexpr til::CoordType y = std::numeric_limits<til::CoordType>().max();
                 const til::rectangle rc{ pt, til::size{ x, y } };
             };
 
@@ -216,11 +216,11 @@ class RectangleTests
 
     TEST_METHOD(SmallRectConstruct)
     {
-        SMALL_RECT sr;
-        sr.Left = 5;
-        sr.Top = 10;
-        sr.Right = 14;
-        sr.Bottom = 19;
+        til::small_rect sr;
+        sr.left = 5;
+        sr.top = 10;
+        sr.right = 14;
+        sr.bottom = 19;
 
         const til::rectangle rc{ sr };
         VERIFY_ARE_EQUAL(5, rc._topLeft.x());
@@ -419,7 +419,7 @@ class RectangleTests
             TEST_METHOD_PROPERTY(L"Data:bottom", L"{0,10}")
         END_TEST_METHOD_PROPERTIES()
 
-        ptrdiff_t left, top, right, bottom;
+        til::CoordType left, top, right, bottom;
         VERIFY_SUCCEEDED_RETURN(TestData::TryGetValue(L"left", left));
         VERIFY_SUCCEEDED_RETURN(TestData::TryGetValue(L"top", top));
         VERIFY_SUCCEEDED_RETURN(TestData::TryGetValue(L"right", right));
@@ -811,7 +811,7 @@ class RectangleTests
 
         Log::Comment(L"2.) Multiply by size with width way too big.");
         {
-            const til::size scale{ std::numeric_limits<ptrdiff_t>().max(), static_cast<ptrdiff_t>(7) };
+            const til::size scale{ std::numeric_limits<til::CoordType>().max(), static_cast<til::CoordType>(7) };
 
             auto fn = [&]() {
                 const auto actual = start.scale_up(scale);
@@ -822,7 +822,7 @@ class RectangleTests
 
         Log::Comment(L"3.) Multiply by size with height way too big.");
         {
-            const til::size scale{ static_cast<ptrdiff_t>(3), std::numeric_limits<ptrdiff_t>().max() };
+            const til::size scale{ static_cast<til::CoordType>(3), std::numeric_limits<til::CoordType>().max() };
 
             auto fn = [&]() {
                 const auto actual = start.scale_up(scale);
@@ -928,8 +928,8 @@ class RectangleTests
 
         Log::Comment(L"1.) Width that should go out of bounds on subtraction.");
         {
-            constexpr ptrdiff_t bigVal = std::numeric_limits<ptrdiff_t>().min();
-            const ptrdiff_t normalVal = 5;
+            constexpr til::CoordType bigVal = std::numeric_limits<til::CoordType>().min();
+            const til::CoordType normalVal = 5;
             const til::rectangle rc{ normalVal, normalVal, bigVal, normalVal };
 
             auto fn = [&]() {
@@ -942,7 +942,7 @@ class RectangleTests
 
     TEST_METHOD(WidthCast)
     {
-        const SHORT expected = 15 - 5;
+        const auto expected = 15 - 5;
         const til::rectangle rc{ 5, 10, 15, 20 };
         VERIFY_ARE_EQUAL(expected, rc.width<SHORT>());
     }
@@ -957,8 +957,8 @@ class RectangleTests
 
         Log::Comment(L"1.) Height that should go out of bounds on subtraction.");
         {
-            constexpr ptrdiff_t bigVal = std::numeric_limits<ptrdiff_t>().min();
-            const ptrdiff_t normalVal = 5;
+            constexpr til::CoordType bigVal = std::numeric_limits<til::CoordType>().min();
+            const til::CoordType normalVal = 5;
             const til::rectangle rc{ normalVal, normalVal, normalVal, bigVal };
 
             auto fn = [&]() {
@@ -971,7 +971,7 @@ class RectangleTests
 
     TEST_METHOD(HeightCast)
     {
-        const SHORT expected = 20 - 10;
+        const auto expected = 20 - 10;
         const til::rectangle rc{ 5, 10, 15, 20 };
         VERIFY_ARE_EQUAL(expected, rc.height<SHORT>());
     }
@@ -999,7 +999,7 @@ class RectangleTests
             TEST_METHOD_PROPERTY(L"Data:bottom", L"{0,10}")
         END_TEST_METHOD_PROPERTIES()
 
-        ptrdiff_t left, top, right, bottom;
+        til::CoordType left, top, right, bottom;
         VERIFY_SUCCEEDED_RETURN(TestData::TryGetValue(L"left", left));
         VERIFY_SUCCEEDED_RETURN(TestData::TryGetValue(L"top", top));
         VERIFY_SUCCEEDED_RETURN(TestData::TryGetValue(L"right", right));
@@ -1017,7 +1017,7 @@ class RectangleTests
             TEST_METHOD_PROPERTY(L"Data:y", L"{-1000,0,9,10,11,19,20,21,1000}")
         END_TEST_METHOD_PROPERTIES()
 
-        ptrdiff_t x, y;
+        til::CoordType x, y;
         VERIFY_SUCCEEDED_RETURN(TestData::TryGetValue(L"x", x));
         VERIFY_SUCCEEDED_RETURN(TestData::TryGetValue(L"y", y));
 
@@ -1045,11 +1045,11 @@ class RectangleTests
             TEST_METHOD_PROPERTY(L"Data:idx", L"{-1000,-1,0, 1,50,99,100,101, 1000}")
         END_TEST_METHOD_PROPERTIES()
 
-        ptrdiff_t idx;
+        til::CoordType idx;
         VERIFY_SUCCEEDED_RETURN(TestData::TryGetValue(L"idx", idx));
 
         const til::rectangle rc{ 5, 10, 15, 20 }; // 10x10 rectangle.
-        const ptrdiff_t area = (15 - 5) * (20 - 10);
+        const til::CoordType area = (15 - 5) * (20 - 10);
         const bool expected = idx >= 0 && idx < area;
         if (expected)
         {
@@ -1084,7 +1084,7 @@ class RectangleTests
         Log::Comment(L"0.) Normal in bounds.");
         {
             const til::point pt{ 7, 17 };
-            const ptrdiff_t expected = 72;
+            const til::CoordType expected = 72;
             VERIFY_ARE_EQUAL(expected, rc.index_of(pt));
         }
 
@@ -1101,8 +1101,8 @@ class RectangleTests
         Log::Comment(L"2.) Overflow.");
         {
             auto fn = [&]() {
-                constexpr const ptrdiff_t min = static_cast<ptrdiff_t>(0);
-                constexpr const ptrdiff_t max = std::numeric_limits<ptrdiff_t>().max();
+                constexpr const til::CoordType min = static_cast<til::CoordType>(0);
+                constexpr const til::CoordType max = std::numeric_limits<til::CoordType>().max();
                 const til::rectangle bigRc{ min, min, max, max };
                 const til::point pt{ max - 1, max - 1 };
                 bigRc.index_of(pt);
@@ -1118,7 +1118,7 @@ class RectangleTests
 
         Log::Comment(L"0.) Normal in bounds.");
         {
-            const ptrdiff_t index = 72;
+            const til::CoordType index = 72;
             const til::point expected{ 7, 17 };
 
             VERIFY_ARE_EQUAL(expected, rc.point_at(index));
@@ -1127,7 +1127,7 @@ class RectangleTests
         Log::Comment(L"1.) Out of bounds too low.");
         {
             auto fn = [&]() {
-                const ptrdiff_t index = -1;
+                const til::CoordType index = -1;
                 rc.point_at(index);
             };
 
@@ -1137,7 +1137,7 @@ class RectangleTests
         Log::Comment(L"2.) Out of bounds too high.");
         {
             auto fn = [&]() {
-                const ptrdiff_t index = 1000;
+                const til::CoordType index = 1000;
                 rc.point_at(index);
             };
 
@@ -1159,10 +1159,10 @@ class RectangleTests
 
         Log::Comment(L"1.) Overflow on left.");
         {
-            constexpr ptrdiff_t l = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t t = 10;
-            const ptrdiff_t r = 15;
-            const ptrdiff_t b = 20;
+            constexpr til::CoordType l = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType t = 10;
+            const til::CoordType r = 15;
+            const til::CoordType b = 20;
             const til::rectangle rc{ l, t, r, b };
 
             auto fn = [&]() {
@@ -1174,10 +1174,10 @@ class RectangleTests
 
         Log::Comment(L"2.) Overflow on top.");
         {
-            const ptrdiff_t l = 5;
-            constexpr ptrdiff_t t = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t r = 15;
-            const ptrdiff_t b = 20;
+            const til::CoordType l = 5;
+            constexpr til::CoordType t = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType r = 15;
+            const til::CoordType b = 20;
             const til::rectangle rc{ l, t, r, b };
 
             auto fn = [&]() {
@@ -1189,10 +1189,10 @@ class RectangleTests
 
         Log::Comment(L"3.) Overflow on right.");
         {
-            const ptrdiff_t l = 5;
-            const ptrdiff_t t = 10;
-            constexpr ptrdiff_t r = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t b = 20;
+            const til::CoordType l = 5;
+            const til::CoordType t = 10;
+            constexpr til::CoordType r = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType b = 20;
             const til::rectangle rc{ l, t, r, b };
 
             auto fn = [&]() {
@@ -1204,10 +1204,10 @@ class RectangleTests
 
         Log::Comment(L"4.) Overflow on bottom.");
         {
-            const ptrdiff_t l = 5;
-            const ptrdiff_t t = 10;
-            const ptrdiff_t r = 15;
-            constexpr ptrdiff_t b = std::numeric_limits<ptrdiff_t>().max();
+            const til::CoordType l = 5;
+            const til::CoordType t = 10;
+            const til::CoordType r = 15;
+            constexpr til::CoordType b = std::numeric_limits<til::CoordType>().max();
             const til::rectangle rc{ l, t, r, b };
 
             auto fn = [&]() {
@@ -1232,13 +1232,13 @@ class RectangleTests
 
         Log::Comment(L"1.) Fit max left into RECT (may overflow).");
         {
-            constexpr ptrdiff_t l = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t t = 10;
-            const ptrdiff_t r = 15;
-            const ptrdiff_t b = 20;
+            constexpr til::CoordType l = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType t = 10;
+            const til::CoordType r = 15;
+            const til::CoordType b = 20;
             const til::rectangle rc{ l, t, r, b };
 
-            // On some platforms, ptrdiff_t will fit inside l/t/r/b
+            // On some platforms, til::CoordType will fit inside l/t/r/b
             const bool overflowExpected = l > std::numeric_limits<decltype(RECT::left)>().max();
 
             if (overflowExpected)
@@ -1258,13 +1258,13 @@ class RectangleTests
 
         Log::Comment(L"2.) Fit max top into RECT (may overflow).");
         {
-            const ptrdiff_t l = 5;
-            constexpr ptrdiff_t t = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t r = 15;
-            const ptrdiff_t b = 20;
+            const til::CoordType l = 5;
+            constexpr til::CoordType t = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType r = 15;
+            const til::CoordType b = 20;
             const til::rectangle rc{ l, t, r, b };
 
-            // On some platforms, ptrdiff_t will fit inside l/t/r/b
+            // On some platforms, til::CoordType will fit inside l/t/r/b
             const bool overflowExpected = t > std::numeric_limits<decltype(RECT::top)>().max();
 
             if (overflowExpected)
@@ -1284,13 +1284,13 @@ class RectangleTests
 
         Log::Comment(L"3.) Fit max right into RECT (may overflow).");
         {
-            const ptrdiff_t l = 5;
-            const ptrdiff_t t = 10;
-            constexpr ptrdiff_t r = std::numeric_limits<ptrdiff_t>().max();
-            const ptrdiff_t b = 20;
+            const til::CoordType l = 5;
+            const til::CoordType t = 10;
+            constexpr til::CoordType r = std::numeric_limits<til::CoordType>().max();
+            const til::CoordType b = 20;
             const til::rectangle rc{ l, t, r, b };
 
-            // On some platforms, ptrdiff_t will fit inside l/t/r/b
+            // On some platforms, til::CoordType will fit inside l/t/r/b
             const bool overflowExpected = r > std::numeric_limits<decltype(RECT::right)>().max();
 
             if (overflowExpected)
@@ -1310,13 +1310,13 @@ class RectangleTests
 
         Log::Comment(L"4.) Fit max bottom into RECT (may overflow).");
         {
-            const ptrdiff_t l = 5;
-            const ptrdiff_t t = 10;
-            const ptrdiff_t r = 15;
-            constexpr ptrdiff_t b = std::numeric_limits<ptrdiff_t>().max();
+            const til::CoordType l = 5;
+            const til::CoordType t = 10;
+            const til::CoordType r = 15;
+            constexpr til::CoordType b = std::numeric_limits<til::CoordType>().max();
             const til::rectangle rc{ l, t, r, b };
 
-            // On some platforms, ptrdiff_t will fit inside l/t/r/b
+            // On some platforms, til::CoordType will fit inside l/t/r/b
             const bool overflowExpected = b > std::numeric_limits<decltype(RECT::bottom)>().max();
 
             if (overflowExpected)
@@ -1347,7 +1347,7 @@ class RectangleTests
             VERIFY_ARE_EQUAL(20, val.bottom);
         }
 
-        // All ptrdiff_ts fit into a float, so there's no exception tests.
+        // All til::CoordTypes fit into a float, so there's no exception tests.
     }
 
     TEST_METHOD(CastToWindowsFoundationRect)
@@ -1362,7 +1362,7 @@ class RectangleTests
             VERIFY_ARE_EQUAL(10.f, val.Height);
         }
 
-        // All ptrdiff_ts fit into a float, so there's no exception tests.
+        // All til::CoordTypes fit into a float, so there's no exception tests.
         // The only other exceptions come from things that don't fit into width() or height()
         // and those have explicit tests elsewhere in this file.
     }

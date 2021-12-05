@@ -51,6 +51,7 @@ QWORD
 regedit
 robocopy
 SACLs
+safeint
 sdkddkver
 Shobjidl
 Skype

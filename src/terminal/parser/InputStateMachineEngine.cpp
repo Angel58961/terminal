@@ -386,7 +386,7 @@ bool InputStateMachineEngine::ActionCsiDispatch(const VTID id, const VTParameter
     {
         DWORD buttonState = 0;
         DWORD eventFlags = 0;
-        const size_t firstParameter = parameters.at(0).value_or(0);
+        const auto firstParameter = parameters.at(0).value_or(0);
         const til::point uiPos{ parameters.at(1) - 1, parameters.at(2) - 1 };
 
         modifierState = _GetSGRMouseModifierState(firstParameter);

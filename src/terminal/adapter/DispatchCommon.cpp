@@ -21,8 +21,8 @@ bool DispatchCommon::s_ResizeWindow(ConGetSet& conApi,
                                     const size_t width,
                                     const size_t height)
 {
-    SHORT sColumns = 0;
-    SHORT sRows = 0;
+    short sColumns = 0;
+    short sRows = 0;
 
     // We should do nothing if 0 is passed in for a size.
     bool success = SUCCEEDED(SizeTToShort(width, &sColumns)) &&
@@ -55,7 +55,7 @@ bool DispatchCommon::s_ResizeWindow(ConGetSet& conApi,
 
             // SetConsoleScreenBufferInfoEx however expects exclusive rects
             const auto sre = newViewport.ToExclusive();
-            csbiex.srWindow = sre;
+            csbiex.srWindow = til::unwrap_small_rect(sre);
 
             success = conApi.SetConsoleScreenBufferInfoEx(csbiex);
             if (success)

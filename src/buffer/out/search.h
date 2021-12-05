@@ -49,33 +49,33 @@ public:
            const std::wstring& str,
            const Direction dir,
            const Sensitivity sensitivity,
-           const COORD anchor);
+           const til::coord anchor);
 
     bool FindNext();
     void Select() const;
     void Color(const TextAttribute attr) const;
 
-    std::pair<COORD, COORD> GetFoundLocation() const noexcept;
+    std::pair<til::coord, til::coord> GetFoundLocation() const noexcept;
 
 private:
     wchar_t _ApplySensitivity(const wchar_t wch) const noexcept;
-    bool _FindNeedleInHaystackAt(const COORD pos, COORD& start, COORD& end) const;
+    bool _FindNeedleInHaystackAt(const til::coord pos, til::coord& start, til::coord& end) const;
     bool _CompareChars(const std::wstring_view one, const std::wstring_view two) const noexcept;
     void _UpdateNextPosition();
 
-    void _IncrementCoord(COORD& coord) const noexcept;
-    void _DecrementCoord(COORD& coord) const noexcept;
+    void _IncrementCoord(til::coord& coord) const noexcept;
+    void _DecrementCoord(til::coord& coord) const noexcept;
 
-    static COORD s_GetInitialAnchor(Microsoft::Console::Types::IUiaData& uiaData, const Direction dir);
+    static til::coord s_GetInitialAnchor(Microsoft::Console::Types::IUiaData& uiaData, const Direction dir);
 
     static std::vector<std::vector<wchar_t>> s_CreateNeedleFromString(const std::wstring& wstr);
 
     bool _reachedEnd = false;
-    COORD _coordNext = { 0 };
-    COORD _coordSelStart = { 0 };
-    COORD _coordSelEnd = { 0 };
+    til::coord _coordNext;
+    til::coord _coordSelStart;
+    til::coord _coordSelEnd;
 
-    const COORD _coordAnchor;
+    const til::coord _coordAnchor;
     const std::vector<std::vector<wchar_t>> _needle;
     const Direction _direction;
     const Sensitivity _sensitivity;
